@@ -1,0 +1,6 @@
+Flask
+flask-restful
+requests
+flask_wtf
+wtforms
+pyjwt

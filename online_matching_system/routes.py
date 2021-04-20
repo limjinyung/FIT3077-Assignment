@@ -1,9 +1,10 @@
-from flask import render_template, url_for, redirect, request, make_response
+from flask import render_template, url_for, redirect, request, make_response, flash, session
+from flask_login import current_user
 from online_matching_system import app
-import requests
-import jwt
-import os
 from decouple import config
+from datetime import datetime
+import requests, jwt, os, base64, time
+from .user import UserFunction
 
 from online_matching_system.forms import LoginForm
 
@@ -16,63 +17,85 @@ users_url = root_url + "/user"
 subjects_url = root_url + "/subject"
 users_login_url = users_url + "/login"
 verify_token_url = users_url + "/verify-token"
+bid_url = root_url + "/bid"
+
+date_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+
+user = UserFunction()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
 
     if form.validate_on_submit():
+       
         # get data from form
         username = form.username.data
         password = form.password.data
+        # log in user
+        result = user.login(username, password)
 
-        # get response from API
-        result = requests.post(
-            url=users_login_url,
-            headers={ 'Authorization': api_key },
-            params={ 'jwt': 'true' }, 
-            data={
-                'userName': username,
-                'password': password
-            }
-        )
+        if result.status_code == 200:
 
-        # status code
-        print('Status code is: {} {}'.format(result.status_code, result.reason))
+            json_data = result.json()
+            jwt = json_data['jwt']
 
-        # retreive the JWT from the response
-        json_data = result.json()
-        jwt = json_data['jwt']
+            # redirect to another and save the JWT in cookies
+            response = make_response(redirect('/'))
+            session['jwt'] = jwt
+            # response.set_cookie('access_token', jwt, httponly=True)
+            return response
 
-        # print(decode_jwt(jwt))
-
-        # redirect to another and save the JWT in cookies
-        response = make_response(redirect('/'))
-        response.set_cookie('acess_token', jwt, httponly=True)
-        return response
+        else:
+            # flash error message
+            flash('Login Unsuccessful. Please check email and password', 'danger')
 
     return render_template('login.html', title='Login', form=form)
 
 
-def verify_token(token):
-
-    result = requests.post(
-        url=verify_token_url,
-        headers={ 'Authorization': api_key },
-        data={
-            'jwt': token,
-        }
-    )
-
-    print('Status code is: {} {}'.format(result.status_code, result.reason))
-
-
-def decode_jwt(encoded_jwt):
-
-    return jwt.decode(encoded_jwt, api_key, algorithms="HS256")
+@app.route('/logout', methods=['GET'])
+def logout():
+    user.logout()
+    return redirect('/login')
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
 
-    return render_template('index.html')
+    if request.method == 'GET':
+        result = requests.get(
+            url=bid_url,
+            headers={ 'Authorization': api_key },
+            params={ 'jwt': 'true' }, 
+        )
+
+        bids = result.json()
+        open_bid = []
+
+        for bid in bids:
+            if bid["type"] == "open":
+                try:
+                    start_time = time.strptime(bid['dateCreated'][:19], "%Y-%m-%dT%H:%M:%S")
+                    start_time_converted = time.strftime("%d/%m/%Y %H:%M:%S", start_time)
+                except TypeError:
+                    start_time_converted = None
+
+                try:
+                    end_time = time.strptime(bid['dateClosedDown'][:19], "%Y-%m-%dT%H:%M:%S")
+                    end_time_converted = time.strftime("%d/%m/%Y %H:%M:%S", end_time)
+                except TypeError:
+                    end_time_converted = None
+
+                open_bid.append({'initiator': bid['initiator'], 'subject':bid['subject'], 'dateCreated': start_time_converted, 'dateCloseDown': end_time_converted })
+
+    return render_template('index.html', open_bid=open_bid)
+
+
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+
+    if request.method == 'GET':
+        profile_details = user.user_details()
+        print(profile_details)
+
+    return render_template('profile.html', profile_details=profile_details)

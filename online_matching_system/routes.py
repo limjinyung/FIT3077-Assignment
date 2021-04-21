@@ -1,4 +1,4 @@
-from flask import render_template, url_for, redirect, request, make_response, flash, session
+from flask import render_template, url_for, redirect, request, make_response, flash, session, jsonify
 from flask_login import current_user
 from online_matching_system import app
 from decouple import config
@@ -147,7 +147,6 @@ def create_bid():
     # additional_info['preferredSessionPerWeek']= str(preferred_session_per_week)
     # additional_info['preferredRateChoice']= str(preferred_rate_choice)
     # additional_info['preferredRate']= str(preferred_rate)
-    # additional_info_json = additional_info.json()
     # print(additional_info_json, type(additional_info_json))
 
     # additional_info_json = dict(
@@ -160,21 +159,34 @@ def create_bid():
     #     preferredRate= preferred_rate
     # )
 
-    additional_info = {"tutorQualification": tutor_qualification, "lessonNeeded": lesson_needed, "preferredTime": preferred_time, "preferredDay": preferred_day, "preferredSessionPerWeek": preferred_session_per_week, "preferredRateChoice": preferred_rate_choice, "preferredRate": preferred_rate}
+    # additional_info = '{{"tutorQualification":"{tutor_qualification}","lessonNeeded":"{lesson_needed}","preferredTime":"{preferred_time}","preferredDay":"{preferred_day}","preferredSessionPerWeek":"{preferred_session_per_week}","preferredRateChoice":"{preferred_rate_choice}","preferredRate":"{preferred_rate}"}}'.format(tutor_qualification=tutor_qualification,lesson_needed=lesson_needed,preferred_time=preferred_time,preferred_day=preferred_day,preferred_session_per_week=preferred_session_per_week,preferred_rate_choice=preferred_rate_choice,preferred_rate=preferred_rate)
+    # additional_info = {"tutorQualification": tutor_qualification, "lessonNeeded": lesson_needed, "preferredTime": preferred_time, "preferredDay": preferred_day, "preferredSessionPerWeek": preferred_session_per_week, "preferredRateChoice": preferred_rate_choice, "preferredRate": preferred_rate}
+    # additional_info_json = json.dumps(additional_info, default=json_util.default)
+    # print(additional_info, type(additional_info))
+
+    data = { 
+        "type": "open",
+        "initiatorId": initiator_id,
+        "dateCreated": str(date_created),
+        "subjectId": subject_id,
+        "additionalInfo": {"tutorQualification": tutor_qualification, "lessonNeeded": lesson_needed, "preferredTime": preferred_time, "preferredDay": preferred_day, "preferredSessionPerWeek": preferred_session_per_week, "preferredRateChoice": preferred_rate_choice, "preferredRate": preferred_rate},
+    }
 
     response = requests.post(
         url=bid_url,
         headers={ 'Authorization': api_key },
-        data={ 
-            "type": "open",
-            "initiatorId": initiator_id,
-            "dateCreated": date_created,
-            "subjectId": subject_id,
-            "additionalInfo": {"tutorQualification": tutor_qualification, "lessonNeeded": lesson_needed, "preferredTime": preferred_time, "preferredDay": preferred_day, "preferredSessionPerWeek": preferred_session_per_week, "preferredRateChoice": preferred_rate_choice, "preferredRate": preferred_rate},
-            # "addtionalInfo": {"tutorQualification": tutor_qualification, "lessonNeeded": lesson_needed, "preferredTime": preferred_time, "preferredDay": preferred_day, "preferredSessionPerWeek": preferred_session_per_week, "preferredRateChoice": preferred_rate_choice, "preferredRate": preferred_rate}
-        }, 
+        json = data,
+        # data={ 
+        #     "type": "open",
+        #     "initiatorId": initiator_id,
+        #     "dateCreated": date_created,
+        #     "subjectId": subject_id,
+        #     "additionalInfo": {"tutorQualification": tutor_qualification, "lessonNeeded": lesson_needed, "preferredTime": preferred_time, "preferredDay": preferred_day, "preferredSessionPerWeek": preferred_session_per_week, "preferredRateChoice": preferred_rate_choice, "preferredRate": preferred_rate},
+        #     # "addtionalInfo": {"tutorQualification": tutor_qualification, "lessonNeeded": lesson_needed, "preferredTime": preferred_time, "preferredDay": preferred_day, "preferredSessionPerWeek": preferred_session_per_week, "preferredRateChoice": preferred_rate_choice, "preferredRate": preferred_rate}
+        # }, 
     )
 
+    print(response.request.body)
     print(response.json())
 
     print('Status code is: {} {}'.format(response.status_code, response.reason))

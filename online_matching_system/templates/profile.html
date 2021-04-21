@@ -1,10 +1,15 @@
 {% extends "layout.html" %}
 {% block content %}
+
+<script type="text/javascript"
+src="{{ url_for('static', filename='jquery.timepicker.min.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='jquery.timepicker.css') }}"/>
+
 <div class="container">
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-          <a class="navbar-brand" href="#">Online Matching System</a>
+          <a class="navbar-brand" href="/">Online Matching System</a>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -78,10 +83,84 @@
         <br>
 
         {% if profile_details.user_details.isStudent == True %}
-            <button class='btn btn-primary'>Create Bid</button>
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+            Create Bid
+        </button>
         {% endif %}
 
 </div>
+  
+<!-- Modal -->
+<div class="modal fade modal-dialog-scrollable" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="staticBackdropLabel">Create Bid</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form action="{{ url_for('create_bid') }}" method="POST">
+                {{ csrf_token }}
+                <div class="mb-3">
+                    <label class="form-label">Subject:</label>
+                    <select class="form-select" name='subject'>
+                        {% for subject in user_subjects %}
+                        <option value="{{subject}}">{{subject}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tutor Qualifications:</label>
+                    <input type="number" class="form-control" name="tutor_qualification">
+                    <div class="form-text">Tutor competency level in this unit</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Lesson Needed:</label>
+                    <input type="number" class="form-control" name="lesson_needed">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Preferred Time:</label>
+                    <select class="form-select" name='preferred_time'>
+                        {% for time in preferred_time_list %}
+                        <option value="{{time}}">{{time}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Preferred Day:</label>
+                    <select class="form-select" name='preferred_day'>
+                        {% for day in preferred_day_list %}
+                        <option value="{{day}}">{{day}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Preferred Session Per Week:</label>
+                    <input type="number" class="form-control" name="preferred_session_per_week">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Preferred Rate Choice:</label>
+                    <select class="form-select" name='preferred_rate_choice'>
+                        {% for choice in preferred_rate_choice %}
+                        <option value="{{choice}}">{{choice}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Preferred Rate:</label>
+                    <input type="number" class="form-control" name="preferred_rate">
+                </div>
+                <input type="submit" class="btn btn-primary" value="Submit"></input>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+        </div>
+    </div>
+</div>
+
 
 
 {% endblock %}

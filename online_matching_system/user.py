@@ -1,7 +1,8 @@
 import requests
-from online_matching_system.routes import *
+# from online_matching_system.routes import *
 from flask_login import current_user
 from flask import session
+from decouple import config
 
 root_url = 'https://fit3077.com/api/v1'
 users_url = root_url + "/user"
@@ -71,7 +72,56 @@ class UserFunction():
         message = base64.b64decode(encoded_jwt[1])
         print('message: ' + str(message))
 
-    def user_details(self):
+    
+    def get_user_id(self):
+
+        user_id_url = users_url + "/{}".format(session['user_id'])
+
+        user_info = requests.get(
+            url=user_id_url,
+            headers={ 'Authorization': api_key },
+        ).json()
+
+        return user_info['id']
+
+
+    def user_info(self):
+
+        user_id_url = users_url + "/{}".format(session['user_id'])
+
+        user_info = requests.get(
+            url=user_id_url,
+            headers={ 'Authorization': api_key },
+        ).json()
+
+        return user_info
+
+    
+    def user_subject(self, info=None):
+
+        subject_list = []
+
+        user_id_url = users_url + "/{}".format(session['user_id'])
+
+        user_competencies = requests.get(
+            url=user_id_url,
+            headers={ 'Authorization': api_key },
+            params={
+                'fields':'competencies.subject'
+            }
+        ).json()
+
+        if info != None:
+            for subject in user_competencies['competencies']:
+                subject_list.append(subject['subject'][str(info)])
+        else:
+            for subject in user_competencies['competencies']:
+                subject_list.append(subject['subject'])
+
+        return subject_list
+
+
+    def user_profile_details(self):
 
         user_id_url = users_url + "/{}".format(session['user_id'])
 
@@ -110,4 +160,4 @@ class UserFunction():
         return user_profile_info
     
 
-
+user = UserFunction()

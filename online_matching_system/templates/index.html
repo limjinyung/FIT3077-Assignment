@@ -23,12 +23,26 @@
 
     <div class="row">
         {% for bid in open_bid %}
-        <div class="col-sm-6">
+        <div class="col-md-4">
           <div class="card">
             <div class="card-body">
               <h5 class="card-title">Subject: {{bid['subject']['name']}}</h5>
-              <p class="card-text">Requestor: {{bid['initiator']['familyName']}} {{bid['initiator']['givenName']}}</p>
-              <p class="card-text">Date Created: {{bid['dateCreated']}} &nbsp; Date Close: {{bid['dateClosedDown']}}</p>
+              <p class="card-text"><strong>Requestor: </strong> {{bid['initiator']['familyName']}} {{bid['initiator']['givenName']}}</p>
+              <p class="card-text"><strong>Date Created: </strong>{{bid['dateCreated']}}</p>
+              {% if bid['dateClosedDown'] %}
+              <p class="card-text"><strong>Date Close:</strong> {{bid['dateClosedDown']}}</p>
+              {% endif %}
+              {% if bid['additionalInfo'] %}
+              <div class="row mb-3">
+                <p class="card-text col-md-6"><strong>Tutor Qualification:</strong> {{bid['additionalInfo']['tutorQualification']}}</p>
+                <p class="card-text col-md-6"><strong>Lesson Needed:</strong> {{bid['additionalInfo']['lessonNeeded']}}</p>
+                <p class="card-text col-md-6"><strong>Preferred Time:</strong> {{bid['additionalInfo']['preferredTime']}}</p>
+                <p class="card-text col-md-6"><strong>Preferred Day:</strong> {{bid['additionalInfo']['preferredDay']}}</p>
+                <p class="card-text col-md-6"><strong>Preferred Session Per Week:</strong> {{bid['additionalInfo']['preferredSessionPerWeek']}}</p>
+                <p class="card-text col-md-6"><strong>Preferred Rate Choice:</strong> {{bid['additionalInfo']['preferredRateChoice']}}</p>
+                <p class="card-text col-md-6"><strong>Preferred Rate:</strong> {{bid['additionalInfo']['preferredRate']}}</p>
+              </div>
+              {% endif %}
               {% if user_info.isStudent == false %}
               <a href="#" class="btn btn-primary">Contact</a> &nbsp; <a href="#" class="btn btn-primary">Buy Out</a>
               {% endif %}

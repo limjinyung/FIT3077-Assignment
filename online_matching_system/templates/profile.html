@@ -14,6 +14,9 @@
               <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="/profile">Profile</a>
               </li>
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="/bid">Bid</a>
+              </li>
               <li class="nav-item" style="float:right;">
                 <a class="nav-link" href="/logout">Logout</a>
               </li>
@@ -58,105 +61,7 @@
             </div>
             {% endfor %}
         </div>
-        <hr>
-
-        <!-- Bids -->
-        <div class="row">
-            {% for bid in profile_details.user_bids %}
-            <div class="col-sm-6">
-                <div class="card">
-                    <h5 class="card-header">Bids</h5>
-                    <div class="card-body">
-                        <h5 class="card-title">{{ bid.subject.name }}</h5>
-                        <p class="card-text">{{ bid.subject.description }}</p>
-                        <p class="card-text"><small class="text-muted">Type: {{ bid.type }}</small></p>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        <br>
-
-        {% if profile_details.user_details.isStudent == True %}
-        <!-- Button trigger modal -->
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-            Create Bid
-        </button>
-        {% endif %}
-
-</div>
-  
-<!-- Modal -->
-<div class="modal fade modal-dialog-scrollable" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="staticBackdropLabel">Create Bid</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <form action="{{ url_for('bids.create_bid') }}" method="POST">
-                {{ csrf_token }}
-                <div class="mb-3">
-                    <label class="form-label">Subject:</label>
-                    <select class="form-select" name='subject'>
-                        {% for subject in user_subjects %}
-                        <option value="{{subject}}">{{subject}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Tutor Qualifications:</label>
-                    <input type="number" class="form-control" name="tutor_qualification">
-                    <div class="form-text">Tutor competency level in this unit</div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Lesson Needed:</label>
-                    <input type="number" class="form-control" name="lesson_needed">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Preferred Time:</label>
-                    <select class="form-select" name='preferred_time'>
-                        {% for time in preferred_time_list %}
-                        <option value="{{time}}">{{time}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Preferred Day:</label>
-                    <select class="form-select" name='preferred_day'>
-                        {% for day in preferred_day_list %}
-                        <option value="{{day}}">{{day}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Preferred Session Per Week:</label>
-                    <input type="number" class="form-control" name="preferred_session_per_week">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Preferred Rate Choice:</label>
-                    <select class="form-select" name='preferred_rate_choice'>
-                        {% for choice in preferred_rate_choice %}
-                        <option value="{{choice}}">{{choice}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Preferred Rate:</label>
-                    <input type="number" class="form-control" name="preferred_rate">
-                </div>
-                <input type="submit" class="btn btn-primary" value="Submit"></input>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-        </div>
     </div>
 </div>
-
-
-
+  
 {% endblock %}

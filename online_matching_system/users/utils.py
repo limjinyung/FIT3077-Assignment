@@ -10,7 +10,7 @@ users_login_url = users_url + "/login"
 api_key = config('FIT3077_API')
 
 
-def login(username, password):
+def login_user(username, password):
 
     # get response from API
     response = requests.post(
@@ -45,12 +45,13 @@ def login(username, password):
     
     return response
 
-def logout():
+def logout_manual():
     # clear session keys
     for key in list(session.keys()):
         session.pop(key)
-    # mark user not logged in
-    self.logged_in = False
+
+    return None
+
 
 def verify_token(token):
 
@@ -156,3 +157,28 @@ def user_profile_details():
     user_profile_info = {'user_details': user_details, 'user_competencies':user_competencies['competencies'], 'user_qualifications':user_qualifications['qualifications'], 'user_bids':user_bids['initiatedBids']}
 
     return user_profile_info
+
+
+def user_bids():
+
+    user_id_url = users_url + "/{}".format(session['user_id'])
+
+    user_bids = requests.get(
+        url=user_id_url,
+        headers={ 'Authorization': api_key },
+        params={
+            'fields':'initiatedBids'
+        }
+    ).json()
+
+    ongoing_bid = []
+    closed_down_bid = []
+
+    for bid in user_bids['initiatedBids']:
+        # print(bid)
+        if bid["dateClosedDown"] != None:
+            closed_down_bid.append(bid)
+        else:
+            ongoing_bid.append(bid)
+
+    return ongoing_bid, closed_down_bid

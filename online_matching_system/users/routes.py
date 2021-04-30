@@ -1,9 +1,10 @@
-from flask import render_template, url_for, flash, redirect, request, Blueprint
-from .utils import login, logout, user_subject, user_profile_details
+from flask import render_template, url_for, flash, redirect, request, Blueprint, make_response
+from .utils import login_user, logout_manual, user_subject, user_profile_details
 from flask_login import current_user
 from flask import session
 from decouple import config
 import requests
+from online_matching_system.forms import LoginForm
 
 users = Blueprint('users', __name__)
 
@@ -23,7 +24,7 @@ def login():
         username = form.username.data
         password = form.password.data
         # log in user
-        result = login(username, password)
+        result = login_user(username, password)
 
         if result.status_code == 200:
 
@@ -45,19 +46,13 @@ def login():
 
 @users.route('/logout', methods=['GET'])
 def logout():
-    logout()
+    logout_manual()
     return redirect('/login')
 
 
 @users.route('/profile', methods=['GET'])
 def profile():
 
-    user_subjects = user_subject('name')
-    preferred_time_list = ['08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30']
-    preferred_day_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-    preferred_rate_choice = ['per hour', 'per session']
+    profile_details = user_profile_details()
 
-    if request.method == 'GET':
-        profile_details = user_profile_details()
-
-    return render_template('profile.html', profile_details=profile_details, user_subjects=user_subjects, preferred_time_list=preferred_time_list, preferred_day_list=preferred_day_list, preferred_rate_choice=preferred_rate_choice)
+    return render_template('profile.html', profile_details=profile_details)

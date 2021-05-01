@@ -4,7 +4,7 @@ from online_matching_system.users.utils import get_user_id, user_subject
 from datetime import datetime
 import requests
 from .observer import BidObserver, BidObject, bid_observer
-from online_matching_system.users.utils import user_bids, user_info
+from online_matching_system.users.utils import user_index_bids, user_info
 from .utils import get_bid_details, check_valid_offer
 
 bids = Blueprint('bids', __name__)
@@ -24,7 +24,7 @@ def bid_index():
     preferred_rate_choice = ['per hour', 'per session']
     bid_type = ['Open', 'Close']
 
-    ongoing_bids, closed_down_bids = user_bids()
+    ongoing_bids, closed_down_bids = user_index_bids()
     info = user_info()
 
     return render_template('bid.html', ongoing_bids=ongoing_bids, closed_down_bids=closed_down_bids, user_info=info,user_subjects=user_subjects, preferred_time_list=preferred_time_list, preferred_hours_per_lesson=preferred_hours_per_lesson, preferred_day_list=preferred_day_list, preferred_rate_choice=preferred_rate_choice, bid_type=bid_type)

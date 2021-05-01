@@ -1,6 +1,7 @@
 from decouple import config
 import requests
 from datetime import datetime
+from online_matching_system.contract.utils import generate_contract
 
 api_key = config('FIT3077_API')
 
@@ -18,6 +19,8 @@ def close_bid(bid_id):
             "dateClosedDown": datetime.now()
         }
     )
+
+    generate_contract(bid_id)
 
     return response.status_code
 

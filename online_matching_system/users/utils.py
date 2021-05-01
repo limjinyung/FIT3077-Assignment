@@ -120,6 +120,50 @@ def user_subject(info=None):
     return subject_list
 
 
+def get_user_competencies():
+
+    user_id_url = users_url + "/{}".format(session['user_id'])
+
+    user_competencies = requests.get(
+        url=user_id_url,
+        headers={ 'Authorization': api_key },
+        params={
+            'fields':'competencies.subject'
+        }
+    ).json()
+    
+    return user_competencies
+
+
+def get_user_qualifications():
+
+    user_id_url = users_url + "/{}".format(session['user_id'])
+
+    user_qualifications = requests.get(
+        url=user_id_url,
+        headers={ 'Authorization': api_key },
+        params={
+            'fields':'qualifications'
+        }
+    ).json()
+
+    return user_qualifications
+
+
+def get_user_bids():
+
+    user_id_url = users_url + "/{}".format(session['user_id'])
+
+    user_bids = requests.get(
+        url=user_id_url,
+        headers={ 'Authorization': api_key },
+        params={
+            'fields':'initiatedBids'
+        }
+    ).json()
+
+    return user_bids
+
 def user_profile_details():
 
     user_id_url = users_url + "/{}".format(session['user_id'])
@@ -130,36 +174,42 @@ def user_profile_details():
         headers={ 'Authorization': api_key },
     ).json()
 
-    user_competencies = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-        params={
-            'fields':'competencies.subject'
-        }
-    ).json()
+    # user_competencies = requests.get(
+    #     url=user_id_url,
+    #     headers={ 'Authorization': api_key },
+    #     params={
+    #         'fields':'competencies.subject'
+    #     }
+    # ).json()
 
-    user_qualifications = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-        params={
-            'fields':'qualifications'
-        }
-    ).json()
+    user_competencies = get_user_competencies()
 
-    user_bids = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-        params={
-            'fields':'initiatedBids'
-        }
-    ).json()
+    # user_qualifications = requests.get(
+    #     url=user_id_url,
+    #     headers={ 'Authorization': api_key },
+    #     params={
+    #         'fields':'qualifications'
+    #     }
+    # ).json()
+
+    user_qualifications = get_user_qualifications()
+
+    # user_bids = requests.get(
+    #     url=user_id_url,
+    #     headers={ 'Authorization': api_key },
+    #     params={
+    #         'fields':'initiatedBids'
+    #     }
+    # ).json()
+
+    user_bids = get_user_bids()
 
     user_profile_info = {'user_details': user_details, 'user_competencies':user_competencies['competencies'], 'user_qualifications':user_qualifications['qualifications'], 'user_bids':user_bids['initiatedBids']}
 
     return user_profile_info
 
 
-def user_bids():
+def user_index_bids():
 
     user_id_url = users_url + "/{}".format(session['user_id'])
 
@@ -175,7 +225,7 @@ def user_bids():
     closed_down_bid = []
 
     for bid in user_bids['initiatedBids']:
-        # print(bid)
+
         if bid["dateClosedDown"] != None:
             closed_down_bid.append(bid)
         else:

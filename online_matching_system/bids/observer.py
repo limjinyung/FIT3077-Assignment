@@ -51,11 +51,12 @@ class BidTimer():
         while True:
             time.sleep(1)
             self.timer -= 1
-            if self.timer <= 0:
+            if self.timer == 0:
                 if not self.bid_object.bought:
                     check_bid_status(self.bid_object.id)
                     self.bid_object.bought = True
                 bid_observer.detach(self.bid_object)
+                break
 
         thread.terminate()
 

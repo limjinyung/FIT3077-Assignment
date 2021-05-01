@@ -17,7 +17,6 @@ class BidObserver(object):
 
     def detach(self, bid_object):
 
-
         if not bid_object.bought:
             bid_object.bought = True
 
@@ -35,7 +34,8 @@ class BidObserver(object):
     def find_and_detach(self, bid_id):
         for bid in self.observer_list:
             if bid.id == bid_id:
-                self.detach(bid)
+                bid.timer = 0
+                # self.detach(bid)
 
 
 class BidTimer():
@@ -43,8 +43,8 @@ class BidTimer():
     def __init__(self, bid_object):
         self.bid_object = bid_object
         self.timer = 60
-        thread = threading.Thread(target=self.count_down, args=())
-        thread.start()
+        self.thread = threading.Thread(target=self.count_down, args=())
+        self.thread.start()
 
     def count_down(self):
 
@@ -53,12 +53,13 @@ class BidTimer():
             self.timer -= 1
             if self.timer == 0:
                 if not self.bid_object.bought:
+                    # make the last bidder as the winner, or close the bid if there's no bidder
                     check_bid_status(self.bid_object.id)
                     self.bid_object.bought = True
                 bid_observer.detach(self.bid_object)
                 break
 
-        thread.terminate()
+        # self.thread.terminate()
 
 
 class BidObject():

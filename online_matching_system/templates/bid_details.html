@@ -17,6 +17,9 @@
               <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="/bid">Bid</a>
               </li>
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="/contract">Contract</a>
+              </li>
               <li class="nav-item" style="float:right;">
                 <a class="nav-link" href="/logout">Logout</a>
               </li>
@@ -58,7 +61,7 @@
                             <p class="card-text"><strong>Free Lesson: </strong> {{ bid.freeLesson }} </p>
                             <p class="card-text"><strong>Rate: </strong> RM{{ bid.rateRequest }} {{ bid.rateChoiceOffered }} </p>
                             {% if not bid_details.bid_date_closed_down %}
-                            <a href="#" class="btn btn-primary">Choose</a>
+                            <a href="{{ url_for('bids.choose_offer',bid_id=bid.bidId,bidder_id=bid.bidderId) }}" class="btn btn-primary">Choose</a>
                             {% endif %}
                           </div>
                         </div>

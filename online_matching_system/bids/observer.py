@@ -42,7 +42,7 @@ class BidTimer():
 
     def __init__(self, bid_object):
         self.bid_object = bid_object
-        self.timer = 60
+        self.timer = 300
         thread = threading.Thread(target=self.count_down, args=())
         thread.start()
 

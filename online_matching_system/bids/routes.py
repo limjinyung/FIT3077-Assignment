@@ -153,6 +153,43 @@ def offer_bid():
     return redirect('/')
 
 
+@bids.route('/choose_offer/<bid_id>/<bidder_id>', methods=["GET","POST"])
+def choose_offer(bid_id, bidder_id):
+
+    bid_details_url = bid_url + "/{}".format(bid_id)
+
+    bid_details = requests.get(
+        url=bid_details_url,
+        headers={ 'Authorization': api_key },
+    ).json()
+
+    bid_additional_info = bid_details['additionalInfo']
+
+    for bidder_request in bid_additional_info['bidderRequest']:
+        if bidder_request['bidderId'] == bidder_id:
+            bidder_request['bid_chosen'] = True
+
+    print(bid_additional_info)
+
+    return_value = {'additionalInfo': bid_additional_info}
+
+    response = requests.patch(
+        url=bid_details_url,
+        headers={ 'Authorization': api_key },
+        json = return_value,
+    )
+
+    print(response.status_code)
+
+    if (response.status_code == 200) | (response.status_code == 302):
+        bid_observer.find_and_detach(bid_id)
+        flash('Deal accept successfully', 'success')
+    else:
+        flash("There's something wrong. Please try again", 'danger')
+
+    return redirect('/bid')
+    
+
 @bids.route('/buy_out/<bid_id>', methods=["GET"])
 def buy_out(bid_id):
 

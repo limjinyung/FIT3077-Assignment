@@ -3,7 +3,7 @@ import requests
 from datetime import datetime
 from online_matching_system.contract.utils import generate_contract
 
-api_key = config('FIT3077_API')
+api_key = config('FIT3077')
 
 root_url = 'https://fit3077.com/api/v1'
 bid_url = root_url + "/bid"
@@ -32,6 +32,7 @@ def get_bid_details(bid_id):
     response = requests.get(
         url=bid_details_url,
         headers={ 'Authorization': api_key },
+        params={'fields': 'messages'}
     ).json()
 
     bid_type = response['type'].lower()
@@ -40,8 +41,10 @@ def get_bid_details(bid_id):
     bid_subject = response['subject']['name']
     initiator_bid = response['additionalInfo']['initiatorBid']
     bidder_request = response['additionalInfo']['bidderRequest']
+    messages = response['messages']
 
-    return {'bid_type':bid_type, 'bid_date_created':bid_date_created, 'bid_date_closed_down':bid_date_closed_down, 'bid_subject':bid_subject, 'initiator_bid':initiator_bid, 'bidder_request':bidder_request}
+    return {'bid_type':bid_type, 'bid_date_created':bid_date_created, 'bid_date_closed_down':bid_date_closed_down,
+            'bid_subject':bid_subject, 'initiator_bid':initiator_bid, 'bidder_request':bidder_request, 'messages':messages}
 
 
 def check_valid_offer(bid_info, bidder_id):

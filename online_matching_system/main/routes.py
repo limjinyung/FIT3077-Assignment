@@ -5,7 +5,7 @@ import time
 from online_matching_system.users.utils import user_info
 from online_matching_system.bids.utils import filter_ongoing_bids
 
-api_key = config('FIT3077_API')
+api_key = config('FIT3077')
 main = Blueprint('main', __name__)
 
 root_url = 'https://fit3077.com/api/v1'

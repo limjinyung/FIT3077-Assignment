@@ -4,15 +4,15 @@ from online_matching_system.users.utils import get_user_id, user_subject
 from datetime import datetime
 import requests
 from .observer import BidObserver, BidObject, bid_observer
-from online_matching_system.users.utils import user_index_bids, user_info
+from online_matching_system.users.utils import get_user_id,user_profile_details,user_index_bids, user_info
 from .utils import get_bid_details, check_valid_offer
 
 bids = Blueprint('bids', __name__)
-api_key = config('FIT3077_API')
+api_key = config('FIT3077')
 
 root_url = 'https://fit3077.com/api/v1'
 bid_url = root_url + "/bid"
-
+message_url = root_url + "/message"
 
 @bids.route('/bid', methods=["GET"])
 def bid_index():
@@ -34,7 +34,7 @@ def bid_index():
 def bid_details(bid_id):
 
     bid_details = get_bid_details(bid_id)
-
+    print(bid_details)
     return render_template('bid_details.html', bid_details=bid_details)
 
 
@@ -63,20 +63,20 @@ def create_bid():
     preferred_rate_choice = request.form.get('preferred_rate_choice')
     preferred_rate = request.form.get('preferred_rate')
 
-    data = { 
+    data = {
         "type": bid_type,
         "initiatorId": initiator_id,
         "dateCreated": str(date_created),
         "subjectId": subject_id,
         "additionalInfo": {
             "initiatorBid": {
-                "tutorQualification": tutor_qualification, 
-                "lessonNeeded": lesson_needed, 
+                "tutorQualification": tutor_qualification,
+                "lessonNeeded": lesson_needed,
                 "preferredHoursPerLesson": preferred_hours_per_lesson,
-                "preferredTime": preferred_time, 
-                "preferredDay": preferred_day, 
-                "preferredSessionPerWeek": preferred_session_per_week, 
-                "preferredRateChoice": preferred_rate_choice, 
+                "preferredTime": preferred_time,
+                "preferredDay": preferred_day,
+                "preferredSessionPerWeek": preferred_session_per_week,
+                "preferredRateChoice": preferred_rate_choice,
                 "preferredRate": preferred_rate
             },
             "bidderRequest": []
@@ -93,7 +93,7 @@ def create_bid():
 
     bid_id = response_value["id"]
     bid_observer.attach(BidObject(bid_id))
-    
+
     if response.status_code == 201:
         flash('Bid created successfully', 'success')
     else:
@@ -146,7 +146,7 @@ def offer_bid():
             flash('Offer submitted successfully', 'success')
         else:
             flash("There's something wrong submitting your offer. Please try again", 'danger')
-     
+
     else:
          flash("You cannot offer a bid twice", 'danger')
 
@@ -188,7 +188,7 @@ def choose_offer(bid_id, bidder_id):
         flash("There's something wrong. Please try again", 'danger')
 
     return redirect('/bid')
-    
+
 
 @bids.route('/buy_out/<bid_id>', methods=["GET"])
 def buy_out(bid_id):
@@ -238,3 +238,107 @@ def buy_out(bid_id):
         flash("There's something wrong. Please try again", 'danger')
 
     return redirect('/')
+
+
+@bids.route('/bid_details_close/<string:bid_id>', methods=["GET", "POST"])
+def bid_messages(bid_id):
+    the_bid=''
+    if request.method == 'GET':
+        preferred_time_list = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30',
+                               '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
+                               '18:00', '18:30']
+        preferred_day_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+        preferred_rate_choice = ['per hour', 'per session']
+        preferred_hours_per_lesson = ['00:30', '01:00', '01:30', '02:00', '02:30', '03:00']
+        result = requests.get(
+            url=bid_url,
+            headers={'Authorization': api_key},
+            params={'jwt': 'true', 'fields': 'messages'},
+        )
+        bids = result.json()
+        for bid in bids:
+            if bid['id'] == bid_id:
+                the_bid = bid
+                break
+        profile_details = user_profile_details()
+        reverse_msgs = the_bid['messages'][::-1]
+        print(the_bid)
+        return render_template('bid_details_close.html', reverse_msgs=reverse_msgs, profile_details=profile_details,
+                               the_bid=the_bid, preferred_time_list=preferred_time_list,
+                               preferred_day_list=preferred_day_list, preferred_hours_per_lesson=preferred_hours_per_lesson,
+                               preferred_rate_choice=preferred_rate_choice)
+
+    if request.method == 'POST':
+        date_posted = datetime.now()
+        content = request.form.get('content')
+        data = {}
+        result = requests.get(
+            url=bid_url,
+            headers={'Authorization': api_key},
+            params={'jwt': 'true', 'fields': 'messages'},
+        )
+        bids = result.json()
+        print(bid_id)
+        for bid in bids:
+            if bid['id'] == bid_id:
+                the_bid = bid
+                break
+
+        if user_profile_details()['user_details']['id'] != the_bid['initiator']['id']:
+            lesson_needed = request.form.get('number_of_lesson_offered')
+            preferred_hours = request.form.get('hours_per_lesson_offered')
+            preferred_time = request.form.get('preferred_time')
+            preferred_day = request.form.get('preferred_day')
+            preferred_session_per_week = request.form.get('session_per_week_offered')
+            free_lesson = request.form.get('free_lesson')
+            preferred_rate_choice = request.form.get('preferred_rate_choice')
+            preferred_rate = request.form.get('preferred_rate')
+            data={
+                "bidId": bid_id,
+                "posterId": get_user_id(),
+                "datePosted": str(date_posted),
+                "content": content,
+                "additionalInfo": {"lessonNeeded": lesson_needed,"preferredHours": preferred_hours,
+                                   "preferredTime": preferred_time, "preferredDay": preferred_day,
+                                   "preferredSessionPerWeek": preferred_session_per_week, 'freeLesson': free_lesson,
+                                   "preferredRateChoice": preferred_rate_choice,
+                                   "preferredRate": preferred_rate, "contentFrom": user_profile_details()['user_details']['id'],
+                                   "contentTo": the_bid['initiator']['id'], "initialBid": True}
+            }
+        results = requests.post(
+            url=message_url,
+            headers={'Authorization': api_key},
+            json=data
+        )
+        print(results.status_code)
+
+    return redirect('/bid_details_close/'+bid_id)
+
+
+@bids.route('/reply_messages/<string:bid_id>/<string:message_id>', methods=["POST"])
+def reply_messages(bid_id, message_id):
+    date_posted = datetime.now()
+    content = request.form.get('content')
+
+    results = requests.get(
+        url=message_url+'/'+message_id,
+        headers={'Authorization': api_key},
+        params={'jwt': 'true'}
+    )
+    the_msg = results.json()
+
+    data = {
+        "bidId": bid_id,
+        "posterId": get_user_id(),
+        "datePosted": str(date_posted),
+        "content": content,
+        "additionalInfo": {"contentFrom": get_user_id(), "contentTo": the_msg["poster"]["id"]}
+    }
+    results = requests.post(
+        url=message_url,
+        headers={'Authorization': api_key},
+        json=data
+    )
+
+    print(results.status_code)
+    return redirect('/bid_details_close/'+bid_id)

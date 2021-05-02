@@ -2,6 +2,10 @@
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
+/bids/__pycache__/
+/main/__pycache__/
+/contracts/__pycache__/
+/users/__pycache__/
 *.py[cod]
 
 # Distribution / packaging

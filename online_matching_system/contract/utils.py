@@ -31,6 +31,10 @@ def generate_contract(bid_id):
     requestor_id = bid_details['initiator']['id']
     subject_id = bid_details['subject']['id']
 
+    if not bid_details['additionalInfo']['bidderRequest']:
+        print("There are no offer in this bid. No contract will be generated.")
+        return None
+
     # loop and find the bidder that wins the bid
     for bidder in bid_details['additionalInfo']['bidderRequest']:
         if bidder['bid_chosen']:

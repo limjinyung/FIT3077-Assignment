@@ -2,6 +2,7 @@ from decouple import config
 import requests
 from datetime import datetime
 from online_matching_system.contract.utils import generate_contract
+from online_matching_system.users.utils import get_user_competencies, users_url
 
 api_key = config('FIT3077_API')
 
@@ -48,14 +49,30 @@ def check_valid_offer(bid_info, bidder_id):
     """
     to check if the user submit the offer more than once
     """
+    user_has_competencies = False
+    first_bid = True
 
     bidder_requests = bid_info['additionalInfo']['bidderRequest']
 
     for bid_request in bidder_requests:
         if bid_request['bidderId'] == bidder_id:
-            return False
+            first_bid = False
 
-    return True
+    user_id_url = users_url + "/{}".format(bidder_id)
+
+    user_competencies = requests.get(
+        url=user_id_url,
+        headers={ 'Authorization': api_key },
+        params={
+            'fields':'competencies.subject'
+        }
+    ).json()
+
+    for competency in user_competencies["competencies"]:
+        if competency["subject"]["id"] == bid_info["subject"]["id"]:
+            user_has_competencies = True
+
+    return (user_has_competencies and first_bid)
 
 
 def filter_ongoing_bids(bid_list):

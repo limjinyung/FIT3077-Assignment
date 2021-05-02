@@ -51,6 +51,7 @@ class BidTimer():
         while True:
             time.sleep(1)
             self.timer -= 1
+            print(self.timer)
             if self.timer == 0:
                 if not self.bid_object.bought:
                     # make the last bidder as the winner, or close the bid if there's no bidder

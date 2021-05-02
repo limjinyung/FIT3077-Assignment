@@ -127,7 +127,7 @@ def offer_bid():
 
     response_value = response.json()
 
-    # check if the user has made the offer already
+    # check if the user is valid to make offer
     if check_valid_offer(response_value, bidder_id):
 
         response_additional = response_value['additionalInfo']
@@ -148,7 +148,7 @@ def offer_bid():
             flash("There's something wrong submitting your offer. Please try again", 'danger')
      
     else:
-         flash("You cannot offer a bid twice", 'danger')
+         flash("You have already offered the bid or you dont have competency offer this bid.", 'danger')
 
     return redirect('/')
 
@@ -218,24 +218,29 @@ def buy_out(bid_id):
     rate_request = bid_details['additionalInfo']['initiatorBid']['preferredRate']
     bid_chosen = True
 
-    response_additional = bid_details['additionalInfo']
+    # check if the user is valid to make offer
+    if check_valid_offer(bid_details, bidder_id):
 
-    response_additional['bidderRequest'].append({"bidder":bidder,"bidderId":bidder_id,"bidId":bid_id,"numberOfLessonOffered":number_of_lesson_offered,"hoursPerLessonOffered":hours_per_lesson_offered,"preferredTimeOffered":preferred_time_offered,"preferredDayOffered":preferred_day_offered,"sessionPerWeekOffered":session_per_week_offered,"freeLesson":free_lesson,"rateChoiceOffered":rate_choice_offered,"rateRequest":rate_request, "bid_chosen":bid_chosen})
+        response_additional = bid_details['additionalInfo']
 
-    return_value = {'additionalInfo': response_additional}
+        response_additional['bidderRequest'].append({"bidder":bidder,"bidderId":bidder_id,"bidId":bid_id,"numberOfLessonOffered":number_of_lesson_offered,"hoursPerLessonOffered":hours_per_lesson_offered,"preferredTimeOffered":preferred_time_offered,"preferredDayOffered":preferred_day_offered,"sessionPerWeekOffered":session_per_week_offered,"freeLesson":free_lesson,"rateChoiceOffered":rate_choice_offered,"rateRequest":rate_request, "bid_chosen":bid_chosen})
 
-    response = requests.patch(
-        url=bid_details_url,
-        headers={ 'Authorization': api_key },
-        json = return_value,
-    )
+        return_value = {'additionalInfo': response_additional}
 
-    print(response.status_code)
+        response = requests.patch(
+            url=bid_details_url,
+            headers={ 'Authorization': api_key },
+            json = return_value,
+        )
 
-    if (response.status_code == 200) | (response.status_code == 302):
-        bid_observer.find_and_detach(bid_id)
-        flash('Buy out successfully', 'success')
+        print(response.status_code)
+
+        if (response.status_code == 200) | (response.status_code == 302):
+            bid_observer.find_and_detach(bid_id)
+            flash('Buy out successfully', 'success')
+        else:
+            flash("There's something wrong. Please try again", 'danger')
     else:
-        flash("There's something wrong. Please try again", 'danger')
+        flash("You have already offered the bid or you dont have competency offer this bid.", 'danger')
 
     return redirect('/')

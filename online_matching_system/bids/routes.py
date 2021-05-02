@@ -188,7 +188,8 @@ def choose_offer(bid_id, bidder_id):
         flash("There's something wrong. Please try again", 'danger')
 
     return redirect('/bid')
-    
+
+
 
 @bids.route('/buy_out/<bid_id>', methods=["GET"])
 def buy_out(bid_id):

@@ -55,15 +55,15 @@
             {% endif %}
             {% if user_info.isTutor == True %}
               {% if bid['type'] == 'open' %}
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bidderRequest-{{bid['id']}}">Offer</button> &nbsp;
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bidderRequest-{{bid['id']}}">Offer</button>
+                <a href="{{ url_for('bids.buy_out',bid_id=bid.id) }}" class="btn btn-primary">Buy Out</a>
               {% endif %}
               {% if bid['type'] == 'close' %}
                 <a href="{{ url_for('bids.bid_messages', bid_id=bid['id']) }}" class="btn btn-primary" data-bs-target="#Backdrop">
                     Message
                 </a>
               {% endif %}
-                <a href="{{ url_for('bids.buy_out',bid_id=bid.id) }}" class="btn btn-primary">Buy Out</a>
-              {% endif %}
+            {% endif %}
           </div>
         </div>
       </div>

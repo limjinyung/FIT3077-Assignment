@@ -7,16 +7,19 @@ from .utils import close_bid, check_bid_status
 
 class BidObserver(object):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self,*args,**kwargs):
         self.observer_list = []
 
     def attach(self, bid_object, bid_type):
-
+        
         self.observer_list.append(bid_object)
+
         if bid_type.lower() == "open":
             BidTimer(bid_object, 60)
+        elif bid_type.lower() == "close":
+            BidTimer(bid_object,180)
         else:
-            BidTimer(bid_object, 180)
+            raise ValueError(bid_type)
 
     def detach(self, bid_object):
 
@@ -29,9 +32,9 @@ class BidObserver(object):
             pass
 
         status = close_bid(bid_object.id)
-
+        
         # TODO: log the close bid information
-        if (status != 200) | (status != 204):
+        if (status != 200) | (status !=  204):
             print(status)
 
     def find_and_detach(self, bid_id):
@@ -71,7 +74,7 @@ class BidTimer():
 class BidObject():
 
     def __init__(self, bid_id):
-        # self.timer = 60
+        # self.timer = 0
         self.id = bid_id
         self.bought = False
 

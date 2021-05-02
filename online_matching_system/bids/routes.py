@@ -4,7 +4,7 @@ from online_matching_system.users.utils import get_user_id, user_subject
 from datetime import datetime
 import requests
 from .observer import BidObserver, BidObject, bid_observer
-from online_matching_system.users.utils import get_user_id,user_profile_details,user_index_bids, user_info
+from online_matching_system.users.utils import get_user_id,user_profile_details,user_index_bids, user_info, login_required
 from .utils import get_bid_details, check_valid_offer
 
 bids = Blueprint('bids', __name__)
@@ -15,6 +15,7 @@ bid_url = root_url + "/bid"
 message_url = root_url + "/message"
 
 @bids.route('/bid', methods=["GET"])
+@login_required
 def bid_index():
 
     user_subjects = user_subject('name')
@@ -31,6 +32,7 @@ def bid_index():
 
 
 @bids.route('/bid_details/<bid_id>', methods=["GET"])
+@login_required
 def bid_details(bid_id):
 
     bid_details = get_bid_details(bid_id)
@@ -39,6 +41,7 @@ def bid_details(bid_id):
 
 
 @bids.route('/create_bid', methods=["POST"])
+@login_required
 def create_bid():
 
     subject_id =''
@@ -105,6 +108,7 @@ def create_bid():
 
 
 @bids.route('/offer_bid', methods=["POST"])
+@login_required
 def offer_bid():
 
     bidder = request.form.get('bidder')
@@ -156,6 +160,7 @@ def offer_bid():
 
 
 @bids.route('/choose_offer/<bid_id>/<bidder_id>', methods=["GET","POST"])
+@login_required
 def choose_offer(bid_id, bidder_id):
 
     bid_details_url = bid_url + "/{}".format(bid_id)
@@ -193,6 +198,7 @@ def choose_offer(bid_id, bidder_id):
 
 
 @bids.route('/buy_out/<bid_id>', methods=["GET"])
+@login_required
 def buy_out(bid_id):
 
     bid_details_url = bid_url + "/{}".format(bid_id)
@@ -248,6 +254,7 @@ def buy_out(bid_id):
 
 
 @bids.route('/bid_details_close/<string:bid_id>', methods=["GET", "POST"])
+@login_required
 def bid_messages(bid_id):
     the_bid=''
     if request.method == 'GET':
@@ -323,6 +330,7 @@ def bid_messages(bid_id):
 
 
 @bids.route('/reply_messages/<string:bid_id>/<string:message_id>', methods=["POST"])
+@login_required
 def reply_messages(bid_id, message_id):
     date_posted = datetime.now()
     content = request.form.get('content')
@@ -352,6 +360,7 @@ def reply_messages(bid_id, message_id):
 
 
 @bids.route('/choose_offer_close/<bid_id>/<message_id>', methods=["GET","POST"])
+@login_required
 def choose_offer_close_bid(bid_id, message_id):
     results = requests.get(
         url=bid_url+'/'+bid_id,

@@ -3,6 +3,7 @@ from decouple import config
 from datetime import datetime
 import requests
 from .utils import get_contract_details
+from online_matching_system.users.utils import login_required
 
 contracts = Blueprint('contracts', __name__)
 api_key = config('FIT3077_API')
@@ -12,6 +13,7 @@ contract_url = root_url + "/contract"
 
 
 @contracts.route('/contract', methods=["GET"])
+@login_required
 def contract_index():
     
     # get all the contract from API
@@ -33,6 +35,7 @@ def contract_index():
 
 
 @contracts.route('/contract_details/<contract_id>', methods=["GET"])
+@login_required
 def contract_details(contract_id):
 
     contract_details = get_contract_details(contract_id)
@@ -53,6 +56,7 @@ def contract_details(contract_id):
 
 
 @contracts.route('/sign_contract/<contract_id>', methods=["POST"])
+@login_required
 def sign_contract(contract_id):
 
     contract_details_url = contract_url + "/{}".format(contract_id)

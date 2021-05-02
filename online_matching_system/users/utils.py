@@ -1,13 +1,35 @@
 import requests
 # from online_matching_system.routes import *
 from flask_login import current_user
-from flask import session
+from flask import session, flash, redirect, render_template, url_for, request
+from functools import wraps
 from decouple import config
 
 root_url = 'https://fit3077.com/api/v1'
 users_url = root_url + "/user"
 users_login_url = users_url + "/login"
 api_key = config('FIT3077_API')
+
+
+def check_login():
+
+    try:
+        if session['user_id']:
+            return True
+    except KeyError:
+        return False
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        try:
+            if session['user_id']:
+                pass
+        except KeyError:
+            return redirect(url_for('users.login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 def login_user(username, password):

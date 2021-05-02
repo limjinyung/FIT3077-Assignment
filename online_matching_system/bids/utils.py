@@ -12,7 +12,7 @@ bid_url = root_url + "/bid"
 def close_bid(bid_id):
 
     close_bid_url = bid_url + '/{}/close-down'.format(bid_id)
-
+    print(bid_id)
     response = requests.post(
         url=close_bid_url,
         headers={ 'Authorization': api_key },
@@ -33,6 +33,7 @@ def get_bid_details(bid_id):
     response = requests.get(
         url=bid_details_url,
         headers={ 'Authorization': api_key },
+        params={'fields': 'messages'}
     ).json()
 
     bid_type = response['type'].lower()
@@ -41,8 +42,10 @@ def get_bid_details(bid_id):
     bid_subject = response['subject']['name']
     initiator_bid = response['additionalInfo']['initiatorBid']
     bidder_request = response['additionalInfo']['bidderRequest']
+    messages = response['messages']
 
-    return {'bid_type':bid_type, 'bid_date_created':bid_date_created, 'bid_date_closed_down':bid_date_closed_down, 'bid_subject':bid_subject, 'initiator_bid':initiator_bid, 'bidder_request':bidder_request}
+    return {'bid_type':bid_type, 'bid_date_created':bid_date_created, 'bid_date_closed_down':bid_date_closed_down,
+            'bid_subject':bid_subject, 'initiator_bid':initiator_bid, 'bidder_request':bidder_request, 'messages':messages}
 
 
 def check_valid_offer(bid_info, bidder_id):

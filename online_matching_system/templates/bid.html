@@ -32,21 +32,39 @@
 
         <!-- Bids -->
         <div class="row">
-            {% for open_bid in ongoing_bids %}
-            <div class="col-sm-6">
-                <div class="card border-success">
-                    <h5 class="card-header">Ongoing Bids</h5>
-                    <div class="card-body">
-                        <h5 class="card-title">{{ open_bid.subject.name }}</h5>
-                        <p class="card-text">{{ open_bid.subject.description }}</p>
-                        <p class="card-text"><small class="text-muted">Type: {{ open_bid.type.lower() }}</small></p>
-                        {% if user_info.isStudent == True %}
-                        <a href="{{ url_for('bids.bid_details',bid_id=open_bid.id) }}"><button class="btn btn-secondary">view more</button></a>
-                        {% endif %}
+            {% for bid in ongoing_bids %}
+                {% if bid.type.lower() == 'open' %}
+                    <div class="col-sm-6">
+                        <div class="card border-success">
+                            <h5 class="card-header">Ongoing Bids</h5>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ bid.subject.name }}</h5>
+                                <p class="card-text">{{ bid.subject.description }}</p>
+                                <p class="card-text"><small class="text-muted">Type: {{ bid.type.lower() }}</small></p>
+                                {% if user_info.isStudent == True %}
+                                <a href="{{ url_for('bids.bid_details',bid_id=bid.id) }}"><button class="btn btn-secondary">view more</button></a>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
+                {% endif %}
+                {% if bid.type.lower() == 'close' %}
+                    <div class="col-sm-6">
+                        <div class="card border-success">
+                            <h5 class="card-header">Ongoing Bids</h5>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ bid.subject.name }}</h5>
+                                <p class="card-text">{{ bid.subject.description }}</p>
+                                <p class="card-text"><small class="text-muted">Type: {{ bid.type.lower() }}</small></p>
+                                {% if user_info.isStudent == True %}
+                                <a href="{{ url_for('bids.bid_messages',bid_id=bid.id)}}" methods="GET"><button class="btn btn-secondary">view messages</button></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
             {% endfor %}
+            <br>
             <hr>
             {% for close_down_bid in closed_down_bids %}
             <div class="col-sm-6">
@@ -57,8 +75,13 @@
                         <p class="card-text">{{ close_down_bid.subject.description }}</p>
                         <p class="card-text"><small class="text-muted">Type: {{ close_down_bid.type.lower() }}</small></p>
                         {% if user_info.isStudent == True %}
-                        <a href="{{ url_for('bids.bid_details',bid_id=close_down_bid.id) }}"><button class="btn btn-secondary">view more</button>
-                            {% endif %}</a>
+                            {% if close_down_bid.type.lower()=='open' %}
+                                <a href="{{ url_for('bids.bid_details',bid_id=close_down_bid.id) }}"><button class="btn btn-secondary">view more</button></a>
+                            {% endif %}
+                            {% if close_down_bid.type.lower()=='close' %}
+                                <a href="{{ url_for('bids.bid_messages',bid_id=close_down_bid.id) }}"><button class="btn btn-secondary">view more</button></a>
+                            {% endif %}
+                        {% endif %}
                     </div>
                 </div>
             </div>

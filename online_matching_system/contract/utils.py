@@ -9,6 +9,11 @@ bid_url = root_url + "/bid"
 contract_url = root_url + "/contract"
 
 def get_contract_details(contract_id):
+    """
+    params: contract_id: a contract ID string 
+    to get the specific contract details from API
+    return a JSON format of contract details
+    """
 
     contract_details_url = contract_url + "/{}".format(contract_id)
 
@@ -20,6 +25,11 @@ def get_contract_details(contract_id):
     return contract_details
 
 def generate_contract(bid_id):
+    """
+    params: bid_id: a bid ID string
+    to generate a contract based on the bid_id given. The contract details will be obtained from the bid_id. An additionalInfo will be added to indicate first and second party sign date
+    return: the response of POST request to the API
+    """
 
     bid_details_url = bid_url + "/{}".format(bid_id)
 
@@ -79,12 +89,5 @@ def generate_contract(bid_id):
         headers={ 'Authorization': api_key },
         json = contract_json
     ).json()
-
-    print(post_contract)
-
-    # if post_contract.status_code == 201:
-    #     print("contract generate successfully")
-    # else:
-    #     print("there's something wrong generating the contract. Please try again.")
 
     return post_contract

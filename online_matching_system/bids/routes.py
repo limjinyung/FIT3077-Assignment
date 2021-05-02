@@ -8,7 +8,7 @@ from online_matching_system.users.utils import get_user_id,user_profile_details,
 from .utils import get_bid_details, check_valid_offer
 
 bids = Blueprint('bids', __name__)
-api_key = config('FIT3077')
+api_key = config('FIT3077_API')
 
 root_url = 'https://fit3077.com/api/v1'
 bid_url = root_url + "/bid"
@@ -92,7 +92,9 @@ def create_bid():
     response_value = response.json()
 
     bid_id = response_value["id"]
-    bid_observer.attach(BidObject(bid_id))
+    print("Attached bid_id:"+bid_id)
+    print(bid_type)
+    bid_observer.attach(BidObject(bid_id), bid_type)
 
     if response.status_code == 201:
         flash('Bid created successfully', 'success')
@@ -278,7 +280,7 @@ def bid_messages(bid_id):
             params={'jwt': 'true', 'fields': 'messages'},
         )
         bids = result.json()
-        print(bid_id)
+
         for bid in bids:
             if bid['id'] == bid_id:
                 the_bid = bid
@@ -303,7 +305,7 @@ def bid_messages(bid_id):
                                    "preferredSessionPerWeek": preferred_session_per_week, 'freeLesson': free_lesson,
                                    "preferredRateChoice": preferred_rate_choice,
                                    "preferredRate": preferred_rate, "contentFrom": user_profile_details()['user_details']['id'],
-                                   "contentTo": the_bid['initiator']['id'], "initialBid": True}
+                                   "contentTo": the_bid['initiator']['id'], "initialBid": True, "bid_chosen": False}
             }
         results = requests.post(
             url=message_url,
@@ -342,3 +344,41 @@ def reply_messages(bid_id, message_id):
 
     print(results.status_code)
     return redirect('/bid_details_close/'+bid_id)
+
+
+@bids.route('/choose_offer_close/<bid_id>/<message_id>', methods=["GET","POST"])
+def choose_offer_close_bid(bid_id, message_id):
+    results = requests.get(
+        url=bid_url+'/'+bid_id,
+        headers={'Authorization': api_key},
+        params={'jwt': 'true'}
+    )
+    the_bid = results.json()
+
+    results = requests.get(
+        url=message_url+'/'+message_id,
+        headers={'Authorization': api_key},
+        params={'jwt': 'true'}
+    )
+    the_msg = results.json()
+    the_msg['additionalInfo']['bid_chosen'] = True
+
+    print(the_msg)
+
+    finalized_msg = {"content": the_msg['content'], "additionalInfo": the_msg['additionalInfo']}
+
+    response = requests.patch(
+        url=message_url+'/'+message_id,
+        headers={'Authorization': api_key},
+        json=finalized_msg
+    )
+
+    print("patch response code:"+str(response.status_code))
+    print(the_bid['id'])
+    if (response.status_code == 200) | (response.status_code == 302):
+        bid_observer.find_and_detach(the_bid['id'])
+        flash('Deal accept successfully', 'success')
+    else:
+        flash("There's something wrong. Please try again", 'danger')
+
+    return redirect('/bid')

@@ -94,7 +94,42 @@
             {% endif %}
 
             {% if profile_details['user_details']['id'] == the_bid['initiator']['id'] %}
-                {% for msgs in the_bid['messages'] if msgs['additionalInfo']['initialBid']==True %}
+                {{the_bid['dateClosedDown']}}
+                {% for the_msgs in the_bid['messages'] if (the_msgs['additionalInfo']['initialBid']==True) and (the_bid['dateClosedDown']!=None) %}
+                    {% if the_msgs['additionalInfo']['bid_chosen']==True %}
+                        <div class="card bg-success">
+                    {% endif %}
+                    {% if the_msgs['additionalInfo']['bid_chosen']==False %}
+                        <div class="card">
+                    {% endif %}
+                        <div class="card-body">
+                            {% if the_msgs['poster']['id'] != the_bid['initiator']['id'] %}
+                                <h6 class="card-title">Bidder: {{the_msgs['poster']['familyName']}} {{the_msgs['poster']['givenName']}}</h6>
+                                <p class="text">Message: {{the_msgs['content']}}</p>
+                                <h6 class="body">{{the_msgs['poster']['familyName']}} {{the_msgs['poster']['givenName']}}'s Offer:</h6>
+                                Lessons Needed: {{the_msgs['additionalInfo']['lessonNeeded']}}<br>
+                                Preferred Hours Per Lesson: {{the_msgs['additionalInfo']['preferredHours']}}<br>
+                                Preferred Time: {{the_msgs['additionalInfo']['preferredTime']}}<br>
+                                Preferred Day: {{the_msgs['additionalInfo']['preferredDay']}}<br>
+                                Session Per Week Offered: {{the_msgs['additionalInfo']['preferredSessionPerWeek']}}<br>
+                                Free Lesson: {{the_msgs['additionalInfo']['freeLesson']}}<br>
+                                Rate Choice: {{the_msgs['additionalInfo']['preferredRateChoice']}}<br>
+                                Rate: {{the_msgs['additionalInfo']['preferredRate']}}<br><br>
+                                {% for msgs2 in reverse_msgs %}
+                                    <!-- {{msgs2}}
+                                    {{msgs2['additionalInfo']['contentTo']}}<br>
+                                    {{msgs2['poster']['id']}}<br> -->
+                                    {% if msgs2['additionalInfo']['contentTo']==the_msgs['poster']['id'] %}
+                                        {{msgs2['poster']['familyName']}} {{msgs2['poster']['givenName']}}'s Reply:<br>
+                                        {{msgs2['content']}}
+                                        <hr>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+                {% for msgs in the_bid['messages'] if (msgs['additionalInfo']['initialBid']==True) and (the_bid['dateClosedDown']==None) %}
                     <div class="card">
                         <div class="card-body">
                             {% if msgs['poster']['id'] != the_bid['initiator']['id'] %}
@@ -108,14 +143,13 @@
                                 Session Per Week Offered: {{msgs['additionalInfo']['preferredSessionPerWeek']}}<br>
                                 Free Lesson: {{msgs['additionalInfo']['freeLesson']}}<br>
                                 Rate Choice: {{msgs['additionalInfo']['preferredRateChoice']}}<br>
-                                Rate: {{msgs['additionalInfo']['preferredRate']}}<br>
-                                <hr>
+                                Rate: {{msgs['additionalInfo']['preferredRate']}}<br><br>
+                                <a href="{{ url_for('bids.choose_offer_close_bid',bid_id=the_bid['id'],message_id=msgs['id']) }}" method="POST" class="btn btn-primary">Accept Offer</a><hr>
                                 {% for msgs2 in reverse_msgs %}
                                     <!-- {{msgs2}}
                                     {{msgs2['additionalInfo']['contentTo']}}<br>
                                     {{msgs2['poster']['id']}}<br> -->
                                     {% if msgs2['additionalInfo']['contentTo']==msgs['poster']['id'] %}
-
                                         {{msgs2['poster']['familyName']}} {{msgs2['poster']['givenName']}}'s Reply:<br>
                                         {{msgs2['content']}}
                                         <hr>
@@ -129,8 +163,7 @@
                                 </div>
                                     <br>
                                     <input type="submit" class="btn btn-primary" value="Submit"></input>
-                                </form><hr>
-                            <button type="button" class="btn btn-primary">Accept</button>
+                                </form>
                             {% endif %}
                         </div>
                     </div><br>

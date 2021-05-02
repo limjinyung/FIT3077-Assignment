@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from decouple import config
 import requests
 
-api_key = config('FIT3077')
+api_key = config('FIT3077_API')
 
 root_url = 'https://fit3077.com/api/v1'
 bid_url = root_url + "/bid"

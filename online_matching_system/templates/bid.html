@@ -57,7 +57,7 @@
                                 <p class="card-text">{{ bid.subject.description }}</p>
                                 <p class="card-text"><small class="text-muted">Type: {{ bid.type.lower() }}</small></p>
                                 {% if user_info.isStudent == True %}
-                                <a href="{{ url_for('bids.bid_messages',bid_id=bid.id) }}"><button class="btn btn-secondary">view messages</button></a>
+                                <a href="{{ url_for('bids.bid_messages',bid_id=bid.id)}}" methods="GET"><button class="btn btn-secondary">view messages</button></a>
                                 {% endif %}
                             </div>
                         </div>
@@ -75,8 +75,13 @@
                         <p class="card-text">{{ close_down_bid.subject.description }}</p>
                         <p class="card-text"><small class="text-muted">Type: {{ close_down_bid.type.lower() }}</small></p>
                         {% if user_info.isStudent == True %}
-                        <a href="{{ url_for('bids.bid_details',bid_id=close_down_bid.id) }}"><button class="btn btn-secondary">view more</button>
-                            {% endif %}</a>
+                            {% if close_down_bid.type.lower()=='open' %}
+                                <a href="{{ url_for('bids.bid_details',bid_id=close_down_bid.id) }}"><button class="btn btn-secondary">view more</button></a>
+                            {% endif %}
+                            {% if close_down_bid.type.lower()=='close' %}
+                                <a href="{{ url_for('bids.bid_messages',bid_id=close_down_bid.id) }}"><button class="btn btn-secondary">view more</button></a>
+                            {% endif %}
+                        {% endif %}
                     </div>
                 </div>
             </div>

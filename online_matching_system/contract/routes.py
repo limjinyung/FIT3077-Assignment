@@ -4,7 +4,7 @@ from datetime import datetime
 import requests
 
 contract = Blueprint('contract', __name__)
-api_key = config('FIT3077')
+api_key = config('FIT3077_API')
 
 root_url = 'https://fit3077.com/api/v1'
 contract_url = root_url + "/contract"

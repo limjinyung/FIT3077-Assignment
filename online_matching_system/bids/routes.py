@@ -92,7 +92,7 @@ def create_bid():
     response_value = response.json()
 
     bid_id = response_value["id"]
-    bid_observer.attach(BidObject(bid_id))
+    bid_observer.attach(BidObject(bid_id), bid_type)
     
     if response.status_code == 201:
         flash('Bid created successfully', 'success')

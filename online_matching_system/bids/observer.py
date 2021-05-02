@@ -17,7 +17,7 @@ class BidObserver(object):
         if bid_type.lower() == "open":
             BidTimer(bid_object, 60)
         elif bid_type.lower() == "close":
-            BidTimer(bid_object,180)
+            BidTimer(bid_object, 604800)
         else:
             raise ValueError(bid_type)
 

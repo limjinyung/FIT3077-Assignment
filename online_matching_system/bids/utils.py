@@ -4,13 +4,15 @@ from datetime import datetime
 from online_matching_system.contract.utils import generate_contract
 from online_matching_system.users.utils import get_user_competencies, users_url
 
-api_key = config('FIT3077_API')
+api_key = 'LnHggLjTCQmMBKnJMzCbGwNKmgNN7w'
 
 root_url = 'https://fit3077.com/api/v1'
 bid_url = root_url + "/bid"
 
 def close_bid(bid_id):
-
+    """
+    Function to close a bid
+    """
     close_bid_url = bid_url + '/{}/close-down'.format(bid_id)
     print(bid_id)
     response = requests.post(
@@ -27,6 +29,9 @@ def close_bid(bid_id):
 
 
 def get_bid_details(bid_id):
+    """
+    Function to get a bid's details using the bid_id
+    """
 
     bid_details_url = bid_url + "/{}".format(bid_id)
 

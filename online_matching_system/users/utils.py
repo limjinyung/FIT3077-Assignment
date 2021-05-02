@@ -8,7 +8,7 @@ from decouple import config
 root_url = 'https://fit3077.com/api/v1'
 users_url = root_url + "/user"
 users_login_url = users_url + "/login"
-api_key = config('FIT3077_API')
+api_key = 'LnHggLjTCQmMBKnJMzCbGwNKmgNN7w'
 
 
 def check_login():

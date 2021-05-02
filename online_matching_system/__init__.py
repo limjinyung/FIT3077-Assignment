@@ -9,11 +9,11 @@ def create_app(config_class=Config):
     from online_matching_system.users.routes import users
     from online_matching_system.bids.routes import bids
     from online_matching_system.main.routes import main
-    from online_matching_system.contract.routes import contract
+    from online_matching_system.contract.routes import contracts
     app.register_blueprint(users)
     app.register_blueprint(bids)
     app.register_blueprint(main)
-    app.register_blueprint(contract)
+    app.register_blueprint(contracts)
 
     return app
 

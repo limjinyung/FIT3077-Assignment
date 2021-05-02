@@ -8,6 +8,17 @@ root_url = 'https://fit3077.com/api/v1'
 bid_url = root_url + "/bid"
 contract_url = root_url + "/contract"
 
+def get_contract_details(contract_id):
+
+    contract_details_url = contract_url + "/{}".format(contract_id)
+
+    contract_details = requests.get(
+        url=contract_details_url,
+        headers={ 'Authorization': api_key },
+    ).json()
+
+    return contract_details
+
 def generate_contract(bid_id):
 
     bid_details_url = bid_url + "/{}".format(bid_id)
@@ -19,6 +30,10 @@ def generate_contract(bid_id):
 
     requestor_id = bid_details['initiator']['id']
     subject_id = bid_details['subject']['id']
+
+    if not bid_details['additionalInfo']['bidderRequest']:
+        print("There are no offer in this bid. No contract will be generated.")
+        return None
 
     # loop and find the bidder that wins the bid
     for bidder in bid_details['additionalInfo']['bidderRequest']:
@@ -52,7 +67,10 @@ def generate_contract(bid_id):
             "lessonRate":lesson_rate,
         },
         "additionalInfo": {
-            "signInfo":{}
+            "signInfo":{
+                "firstPartySignedDate": None,
+                "secondPartySignedDate": None,
+            }
         }
     }
 

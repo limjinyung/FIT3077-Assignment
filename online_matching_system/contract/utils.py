@@ -32,31 +32,52 @@ def generate_contract(bid_id):
     """
 
     bid_details_url = bid_url + "/{}".format(bid_id)
-
+    print("The bid details url: "+str(bid_details_url))
     bid_details = requests.get(
         url=bid_details_url,
         headers={ 'Authorization': api_key },
+        params={'fields':'messages'}
     ).json()
+    print(bid_details_url)
 
     requestor_id = bid_details['initiator']['id']
     subject_id = bid_details['subject']['id']
 
-    if not bid_details['additionalInfo']['bidderRequest']:
-        print("There are no offer in this bid. No contract will be generated.")
-        return None
+    if bid_details['type'] == 'Open':
+        if not bid_details['additionalInfo']['bidderRequest']:
+            print("There are no offer in this bid. No contract will be generated.")
+            return None
 
-    # loop and find the bidder that wins the bid
-    for bidder in bid_details['additionalInfo']['bidderRequest']:
-        if bidder['bid_chosen']:
-            bidder_id = bidder['bidderId']
-            number_of_lesson = bidder['numberOfLessonOffered']
-            hours_per_lesson = bidder['hoursPerLessonOffered']
-            lesson_time = bidder['preferredTimeOffered']
-            lesson_day = bidder['preferredDayOffered']
-            lesson_per_week = bidder['sessionPerWeekOffered']
-            free_lesson = bidder['freeLesson']
-            lesson_rate_choice = bidder['rateChoiceOffered']
-            lesson_rate = bidder['rateRequest']
+        # loop and find the bidder that wins the bid
+        for bidder in bid_details['additionalInfo']['bidderRequest']:
+            if bidder['bid_chosen']:
+                bidder_id = bidder['bidderId']
+                number_of_lesson = bidder['numberOfLessonOffered']
+                hours_per_lesson = bidder['hoursPerLessonOffered']
+                lesson_time = bidder['preferredTimeOffered']
+                lesson_day = bidder['preferredDayOffered']
+                lesson_per_week = bidder['sessionPerWeekOffered']
+                free_lesson = bidder['freeLesson']
+                lesson_rate_choice = bidder['rateChoiceOffered']
+                lesson_rate = bidder['rateRequest']
+
+    if bid_details['type'] == 'Close':
+        if len(bid_details['messages']) == 0:
+            print("There are no offer in this bid. No contract will be generated.")
+            return None
+
+        for bids in bid_details['messages']:
+            if bids['additionalInfo']['bid_chosen']:
+                bidder_id = bids['poster']['id']
+                number_of_lesson = bids['additionalInfo']['lessonNeeded']
+                hours_per_lesson = bids['additionalInfo']['preferredHours']
+                lesson_time = bids['additionalInfo']['preferredTime']
+                lesson_day = bids['additionalInfo']['preferredDay']
+                lesson_per_week = bids['additionalInfo']['preferredSessionPerWeek']
+                free_lesson = bids['additionalInfo']['freeLesson']
+                lesson_rate_choice = bids['additionalInfo']['preferredRateChoice']
+                lesson_rate = bids['additionalInfo']['preferredRate']
+                break
 
     contract_json = {
         "firstPartyId": requestor_id,

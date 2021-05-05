@@ -17,6 +17,10 @@ message_url = root_url + "/message"
 @bids.route('/bid', methods=["GET"])
 @login_required
 def bid_index():
+    """
+    Function to obtain ongoing and closed down bids to be displayed on the UI
+    @return: a flask function to execute bid.html
+    """
 
     user_subjects = user_subject('name')
     preferred_time_list = ['08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30']
@@ -34,6 +38,10 @@ def bid_index():
 @bids.route('/bid_details/<bid_id>', methods=["GET"])
 @login_required
 def bid_details(bid_id):
+    """
+    Function to obtain the bid details based on the bid_id to be displayed on the UI
+    @params
+    """
 
     bid_details = get_bid_details(bid_id)
     print(bid_details)
@@ -43,7 +51,9 @@ def bid_details(bid_id):
 @bids.route('/create_bid', methods=["POST"])
 @login_required
 def create_bid():
-
+    """
+    Function to create a new bid
+    """
     subject_id =''
 
     initiator_id = get_user_id()
@@ -97,7 +107,7 @@ def create_bid():
     bid_id = response_value["id"]
     print("Attached bid_id:"+bid_id)
     print(bid_type)
-    bid_observer.attach(BidObject(bid_id), bid_type)
+    bid_observer.attach(BidObject(bid_id), bid_type.lower())
 
     if response.status_code == 201:
         flash('Bid created successfully', 'success')
@@ -110,6 +120,9 @@ def create_bid():
 @bids.route('/offer_bid', methods=["POST"])
 @login_required
 def offer_bid():
+    """
+    Function to offer a bid to an existing request
+    """
 
     bidder = request.form.get('bidder')
     bidder_id = request.form.get('bidder_id')
@@ -162,6 +175,9 @@ def offer_bid():
 @bids.route('/choose_offer/<bid_id>/<bidder_id>', methods=["GET","POST"])
 @login_required
 def choose_offer(bid_id, bidder_id):
+    """
+    Function to choose an offer from all offers of the bid
+    """
 
     bid_details_url = bid_url + "/{}".format(bid_id)
 
@@ -200,7 +216,9 @@ def choose_offer(bid_id, bidder_id):
 @bids.route('/buy_out/<bid_id>', methods=["GET"])
 @login_required
 def buy_out(bid_id):
-
+    """
+    Function to buy out a bid for the bidder
+    """
     bid_details_url = bid_url + "/{}".format(bid_id)
 
     user_info_list = user_info()
@@ -256,6 +274,9 @@ def buy_out(bid_id):
 @bids.route('/bid_details_close/<string:bid_id>', methods=["GET", "POST"])
 @login_required
 def bid_messages(bid_id):
+    """
+    Function to get and post bid details for close
+    """
     the_bid=''
     if request.method == 'GET':
         preferred_time_list = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30',
@@ -324,7 +345,7 @@ def bid_messages(bid_id):
             headers={'Authorization': api_key},
             json=data
         )
-        print(results.status_code)
+        # print(results.status_code)
 
     return redirect('/bid_details_close/'+bid_id)
 
@@ -332,6 +353,9 @@ def bid_messages(bid_id):
 @bids.route('/reply_messages/<string:bid_id>/<string:message_id>', methods=["POST"])
 @login_required
 def reply_messages(bid_id, message_id):
+    """
+    Function to reply to close bid messages
+    """
     date_posted = datetime.now()
     content = request.form.get('content')
 
@@ -355,7 +379,7 @@ def reply_messages(bid_id, message_id):
         json=data
     )
 
-    print(results.status_code)
+    print("Sending reply response code:"+str(results.status_code))
     return redirect('/bid_details_close/'+bid_id)
 
 
@@ -377,7 +401,6 @@ def choose_offer_close_bid(bid_id, message_id):
     the_msg = results.json()
     the_msg['additionalInfo']['bid_chosen'] = True
 
-    print(the_msg)
 
     finalized_msg = {"content": the_msg['content'], "additionalInfo": the_msg['additionalInfo']}
 
@@ -387,9 +410,9 @@ def choose_offer_close_bid(bid_id, message_id):
         json=finalized_msg
     )
 
-    print("patch response code:"+str(response.status_code))
-    print(the_bid['id'])
     if (response.status_code == 200) | (response.status_code == 302):
+        print("The bid before being detached: "+str(the_bid))
+        # bid_observer.attach(BidObject(bid_id), 'close')
         bid_observer.find_and_detach(the_bid['id'])
         flash('Deal accept successfully', 'success')
     else:

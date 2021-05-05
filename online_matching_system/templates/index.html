@@ -33,6 +33,7 @@
         <div class="card">
           <div class="card-body">
             <h5 class="card-title">Subject: {{bid['subject']['name']}}</h5>
+              {{bid['id']}}
             {% if user_info.isTutor == True %}
             <p class="card-text"><strong>Type: </strong> {{bid['type']}}</p>
             {% endif %}

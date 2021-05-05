@@ -10,9 +10,12 @@ root_url = 'https://fit3077.com/api/v1'
 bid_url = root_url + "/bid"
 
 def close_bid(bid_id):
-
+    """
+    Function to close a bid
+    """
     close_bid_url = bid_url + '/{}/close-down'.format(bid_id)
-    print(bid_id)
+    print("The bid being closed down"+str(bid_id))
+    print("The bid url:"+str(close_bid_url))
     response = requests.post(
         url=close_bid_url,
         headers={ 'Authorization': api_key },
@@ -20,6 +23,14 @@ def close_bid(bid_id):
             "dateClosedDown": datetime.now()
         }
     )
+    # print(response.status_code)
+
+    result = requests.get(
+        url=bid_url+'/'+bid_id,
+        headers={'Authorization': api_key},
+        params={'jwt': 'true', 'fields': 'messages'}
+    )
+    # print(result.json)
 
     generate_contract(bid_id)
 
@@ -27,6 +38,9 @@ def close_bid(bid_id):
 
 
 def get_bid_details(bid_id):
+    """
+    Function to get a bid's details using the bid_id
+    """
 
     bid_details_url = bid_url + "/{}".format(bid_id)
 

@@ -16,6 +16,9 @@ verify_token_url = users_url + "/verify-token"
 
 @users.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    Function to handle the login credentials of the user
+    """
     form = LoginForm()
 
     if form.validate_on_submit():
@@ -46,6 +49,9 @@ def login():
 
 @users.route('/logout', methods=['GET'])
 def logout():
+    """
+    Function to logout of the system
+    """
     logout_manual()
     return redirect('/login')
 
@@ -53,7 +59,9 @@ def logout():
 @users.route('/profile', methods=['GET'])
 @login_required
 def profile():
-
+    """
+    Function to get the user's profile details
+    """
     profile_details = user_profile_details()
 
     return render_template('profile.html', profile_details=profile_details)

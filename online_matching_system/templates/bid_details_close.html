@@ -31,6 +31,7 @@
     <div class="container">
         <h4 class="header">Request Details</h4>
         <div class="container p-3 my-3 border">
+            {{the_bid['id']}}<br>
             <p class="card-text">Requestor: {{the_bid['initiator']['familyName']}} {{the_bid['initiator']['givenName']}}</p>
             <p class="card-text">Date Created: {{the_bid['dateCreated']}} &nbsp; Date Close: {{the_bid['dateClosedDown']}}</p>
             Subject: {{the_bid['subject']['name']}}<br>
@@ -97,13 +98,14 @@
                 {{the_bid['dateClosedDown']}}
                 {% for the_msgs in the_bid['messages'] if (the_msgs['additionalInfo']['initialBid']==True) and (the_bid['dateClosedDown']!=None) %}
                     {% if the_msgs['additionalInfo']['bid_chosen']==True %}
-                        <div class="card bg-success">
+                        <div class="card text-white bg-success">
                     {% endif %}
                     {% if the_msgs['additionalInfo']['bid_chosen']==False %}
                         <div class="card">
                     {% endif %}
                         <div class="card-body">
                             {% if the_msgs['poster']['id'] != the_bid['initiator']['id'] %}
+                                {{the_msgs['id']}}<br>
                                 <h6 class="card-title">Bidder: {{the_msgs['poster']['familyName']}} {{the_msgs['poster']['givenName']}}</h6>
                                 <p class="text">Message: {{the_msgs['content']}}</p>
                                 <h6 class="body">{{the_msgs['poster']['familyName']}} {{the_msgs['poster']['givenName']}}'s Offer:</h6>

@@ -18,11 +18,12 @@ class BidObserver(object):
         """
         
         self.observer_list.append(bid_object)
-
+        print("The observer list: "+str(self.observer_list))
+        print(self.observer_list)
         if bid_type.lower() == "open":
             BidTimer(bid_object, 20)
         elif bid_type.lower() == "close":
-            BidTimer(bid_object,180)
+            BidTimer(bid_object, 604800)
         else:
             raise ValueError(bid_type)
 
@@ -44,7 +45,7 @@ class BidObserver(object):
         status = close_bid(bid_object.id)
         
         # TODO: log the close bid information
-        if (status != 200) | (status !=  204):
+        if (status != 200) | (status != 204):
             print(status)
 
     def find_and_detach(self, bid_id):
@@ -52,7 +53,9 @@ class BidObserver(object):
         params: bid_id, a string if bid ID
         This method is for function that have only bid_id info that wants to detach the bid
         """
+        # print("List before detaching: "+str(self.observer_list))
         for bid in self.observer_list:
+            # print(bid.id)
             if bid.id == bid_id:
                 # bid.timer = 0
                 self.detach(bid)

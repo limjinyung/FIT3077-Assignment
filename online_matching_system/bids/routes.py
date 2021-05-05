@@ -8,7 +8,7 @@ from online_matching_system.users.utils import get_user_id,user_profile_details,
 from .utils import get_bid_details, check_valid_offer
 
 bids = Blueprint('bids', __name__)
-api_key = 'LnHggLjTCQmMBKnJMzCbGwNKmgNN7w'
+api_key = config('FIT3077_API')
 
 root_url = 'https://fit3077.com/api/v1'
 bid_url = root_url + "/bid"
@@ -107,7 +107,7 @@ def create_bid():
     bid_id = response_value["id"]
     print("Attached bid_id:"+bid_id)
     print(bid_type)
-    bid_observer.attach(BidObject(bid_id), bid_type)
+    bid_observer.attach(BidObject(bid_id), bid_type.lower())
 
     if response.status_code == 201:
         flash('Bid created successfully', 'success')
@@ -345,7 +345,7 @@ def bid_messages(bid_id):
             headers={'Authorization': api_key},
             json=data
         )
-        print(results.status_code)
+        # print(results.status_code)
 
     return redirect('/bid_details_close/'+bid_id)
 
@@ -379,7 +379,7 @@ def reply_messages(bid_id, message_id):
         json=data
     )
 
-    print(results.status_code)
+    print("Sending reply response code:"+str(results.status_code))
     return redirect('/bid_details_close/'+bid_id)
 
 
@@ -401,7 +401,6 @@ def choose_offer_close_bid(bid_id, message_id):
     the_msg = results.json()
     the_msg['additionalInfo']['bid_chosen'] = True
 
-    print(the_msg)
 
     finalized_msg = {"content": the_msg['content'], "additionalInfo": the_msg['additionalInfo']}
 
@@ -411,9 +410,9 @@ def choose_offer_close_bid(bid_id, message_id):
         json=finalized_msg
     )
 
-    print("patch response code:"+str(response.status_code))
-    print(the_bid['id'])
     if (response.status_code == 200) | (response.status_code == 302):
+        print("The bid before being detached: "+str(the_bid))
+        # bid_observer.attach(BidObject(bid_id), 'close')
         bid_observer.find_and_detach(the_bid['id'])
         flash('Deal accept successfully', 'success')
     else:

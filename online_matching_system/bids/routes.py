@@ -5,7 +5,7 @@ from datetime import datetime
 import requests
 from .observer import BidObserver, BidObject, bid_observer
 from online_matching_system.users.utils import get_user_id,user_profile_details,user_index_bids, user_info, login_required
-from .utils import get_bid_details, check_valid_offer
+from .utils import get_bid_details, check_valid_offer, check_contract
 
 bids = Blueprint('bids', __name__)
 api_key = config('FIT3077_API')

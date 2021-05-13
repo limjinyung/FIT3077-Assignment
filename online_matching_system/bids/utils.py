@@ -8,6 +8,7 @@ api_key = config('FIT3077_API')
 
 root_url = 'https://fit3077.com/api/v1'
 bid_url = root_url + "/bid"
+contract_url = root_url + "/contract"
 
 def close_bid(bid_id):
     """
@@ -135,3 +136,21 @@ def check_bid_status(bid_id):
         # TODO: log this information
         # if response.status_code != 200:
         #     print(status)
+
+
+def check_contract():
+
+    user_contract = 0
+
+    contracts = requests.get(
+        url=contract_url,
+        headers={ 'Authorization': api_key },
+    ).json()
+
+    for contract in contracts:
+        if (contract['firstParty'] == session['user_id']) & (datetime.now() < contract['expiryDate']):
+            user_contract += 1
+        elif (contract['secondParty'] == session['user_id']) & (datetime.now() < contract['expiryDate']):
+            user_contract += 1
+
+    return user_contract < 5

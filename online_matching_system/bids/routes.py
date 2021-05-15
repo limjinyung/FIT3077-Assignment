@@ -1,10 +1,12 @@
-from flask import render_template, url_for, flash, redirect, request, Blueprint
+from flask import render_template, url_for, flash, redirect, request, Blueprint, session
 from decouple import config
-from online_matching_system.users.utils import get_user_id, user_subject
+from online_matching_system.users.utils import user_subject
+from online_matching_system.users.user_model import student, tutor
 from datetime import datetime
 import requests
 from .observer import BidObserver, BidObject, bid_observer
-from online_matching_system.users.utils import get_user_id,user_profile_details,user_index_bids, user_info, login_required
+from online_matching_system.users.utils import login_required, check_user_model, user_index_bids
+from online_matching_system.users.user_model import student, tutor
 from .utils import get_bid_details, check_valid_offer, check_contract
 
 bids = Blueprint('bids', __name__)
@@ -16,6 +18,7 @@ message_url = root_url + "/message"
 
 @bids.route('/bid', methods=["GET"])
 @login_required
+@check_user_model
 def bid_index():
     """
     Function to obtain ongoing and closed down bids to be displayed on the UI
@@ -30,13 +33,18 @@ def bid_index():
     bid_type = ['Open', 'Close']
 
     ongoing_bids, closed_down_bids = user_index_bids()
-    info = user_info()
+    
+    if student.initialized:
+        info = student.user_details
+    else:
+        info = tutor.user_details
 
     return render_template('bid.html', ongoing_bids=ongoing_bids, closed_down_bids=closed_down_bids, user_info=info,user_subjects=user_subjects, preferred_time_list=preferred_time_list, preferred_hours_per_lesson=preferred_hours_per_lesson, preferred_day_list=preferred_day_list, preferred_rate_choice=preferred_rate_choice, bid_type=bid_type)
 
 
 @bids.route('/bid_details/<bid_id>', methods=["GET"])
 @login_required
+@check_user_model
 def bid_details(bid_id):
     """
     Function to obtain the bid details based on the bid_id to be displayed on the UI
@@ -50,13 +58,14 @@ def bid_details(bid_id):
 
 @bids.route('/create_bid', methods=["POST"])
 @login_required
+@check_user_model
 def create_bid():
     """
     Function to create a new bid
     """
     subject_id =''
 
-    initiator_id = get_user_id()
+    initiator_id = session['user_id']
     date_created = datetime.now()
     bid_type = request.form.get('bid_type')
     # subject chosen by the requestor
@@ -119,6 +128,7 @@ def create_bid():
 
 @bids.route('/offer_bid', methods=["POST"])
 @login_required
+@check_user_model
 def offer_bid():
     """
     Function to offer a bid to an existing request
@@ -174,6 +184,7 @@ def offer_bid():
 
 @bids.route('/choose_offer/<bid_id>/<bidder_id>', methods=["GET","POST"])
 @login_required
+@check_user_model
 def choose_offer(bid_id, bidder_id):
     """
     Function to choose an offer from all offers of the bid
@@ -215,6 +226,7 @@ def choose_offer(bid_id, bidder_id):
 
 @bids.route('/buy_out/<bid_id>', methods=["GET"])
 @login_required
+@check_user_model
 def buy_out(bid_id):
     """
     Function to buy out a bid for the bidder
@@ -273,6 +285,7 @@ def buy_out(bid_id):
 
 @bids.route('/bid_details_close/<string:bid_id>', methods=["GET", "POST"])
 @login_required
+@check_user_model
 def bid_messages(bid_id):
     """
     Function to get and post bid details for close
@@ -330,7 +343,7 @@ def bid_messages(bid_id):
             preferred_rate = request.form.get('preferred_rate')
             data={
                 "bidId": bid_id,
-                "posterId": get_user_id(),
+                "posterId": session['user_id'],
                 "datePosted": str(date_posted),
                 "content": content,
                 "additionalInfo": {"lessonNeeded": lesson_needed,"preferredHours": preferred_hours,
@@ -352,6 +365,7 @@ def bid_messages(bid_id):
 
 @bids.route('/reply_messages/<string:bid_id>/<string:message_id>', methods=["POST"])
 @login_required
+@check_user_model
 def reply_messages(bid_id, message_id):
     """
     Function to reply to close bid messages
@@ -368,10 +382,10 @@ def reply_messages(bid_id, message_id):
 
     data = {
         "bidId": bid_id,
-        "posterId": get_user_id(),
+        "posterId": session['user_id'],
         "datePosted": str(date_posted),
         "content": content,
-        "additionalInfo": {"contentFrom": get_user_id(), "contentTo": the_msg["poster"]["id"]}
+        "additionalInfo": {"contentFrom": session['user_id'], "contentTo": the_msg["poster"]["id"]}
     }
     results = requests.post(
         url=message_url,
@@ -385,6 +399,7 @@ def reply_messages(bid_id, message_id):
 
 @bids.route('/choose_offer_close/<bid_id>/<message_id>', methods=["GET","POST"])
 @login_required
+@check_user_model
 def choose_offer_close_bid(bid_id, message_id):
     results = requests.get(
         url=bid_url+'/'+bid_id,

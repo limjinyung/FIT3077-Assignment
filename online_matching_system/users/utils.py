@@ -4,6 +4,7 @@ from flask_login import current_user
 from flask import session, flash, redirect, render_template, url_for, request
 from functools import wraps
 from decouple import config
+from .user_model import student, tutor
 
 root_url = 'https://fit3077.com/api/v1'
 users_url = root_url + "/user"
@@ -20,7 +21,41 @@ def check_login():
         return False
 
 
+def create_user_model():
+    """
+    initialized the user model
+    format: boolean
+    """
+
+    user_id_url = root_url + "/{}/{}".format("user", session['user_id'])
+
+    user_info = requests.get(
+        url=user_id_url,
+        headers={ 'Authorization': api_key },
+    ).json()
+
+    if user_info['isStudent']:
+        student.get_user_details()
+        student.get_user_bids()
+        student.get_user_competencies()
+        student.get_user_qualifications()
+        student.get_contract_number()
+        student.initialized = True
+
+    if user_info['isTutor']:
+        tutor.get_user_details()
+        tutor.get_user_bids()
+        tutor.get_user_competencies()
+        tutor.get_user_qualifications()
+        tutor.initialized = True
+
+    return student, tutor
+
+
 def login_required(f):
+    """
+    to ask user login first before perform any action
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         try:
@@ -31,6 +66,24 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
+def check_user_model(f):
+    """
+    initialized the user model if it is not yet initialized
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        try:
+            if student.initialized or tutor.initialized:
+                # print("initialized")
+                pass
+        except AttributeError:
+            create_user_model()
+            # print("reinitialized")
+            return redirect(str(request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+    
 
 def login_user(username, password):
 
@@ -64,6 +117,8 @@ def login_user(username, password):
             if user['userName'] == username:
                 # store the user's ID in session
                 session['user_id'] = user["id"]
+
+    create_user_model()
     
     return response
 
@@ -94,139 +149,31 @@ def decode_jwt(encoded_jwt):
     print('message: ' + str(message))
 
 
-def get_user_id():
-
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    user_info = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-    ).json()
-
-    return user_info['id']
-
-
-def user_info():
-
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    user_info = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-    ).json()
-
-    return user_info
-
-
 def user_subject(info=None):
 
     subject_list = []
 
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    user_competencies = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-        params={
-            'fields':'competencies.subject'
-        }
-    ).json()
+    user_competencies = student.user_competencies
 
     if info != None:
-        for subject in user_competencies['competencies']:
+        for subject in user_competencies:
             subject_list.append(subject['subject'][str(info)])
     else:
-        for subject in user_competencies['competencies']:
+        for subject in user_competencies:
             subject_list.append(subject['subject'])
 
     return subject_list
 
 
-def get_user_competencies():
-
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    user_competencies = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-        params={
-            'fields':'competencies.subject'
-        }
-    ).json()
-    
-    return user_competencies
-
-
-def get_user_qualifications():
-
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    user_qualifications = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-        params={
-            'fields':'qualifications'
-        }
-    ).json()
-
-    return user_qualifications
-
-
-def get_user_bids():
-
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    user_bids = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-        params={
-            'fields':'initiatedBids'
-        }
-    ).json()
-
-    return user_bids
-
 def user_profile_details():
+    
+    print(student)
+    user_details = student.user_details
+    user_competencies = student.user_competencies
+    user_qualifications = student.user_qualifications
+    user_bids = student.user_bids
 
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    # TODO: merge all params in one requests
-    user_details = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-    ).json()
-
-    # user_competencies = requests.get(
-    #     url=user_id_url,
-    #     headers={ 'Authorization': api_key },
-    #     params={
-    #         'fields':'competencies.subject'
-    #     }
-    # ).json()
-
-    user_competencies = get_user_competencies()
-
-    # user_qualifications = requests.get(
-    #     url=user_id_url,
-    #     headers={ 'Authorization': api_key },
-    #     params={
-    #         'fields':'qualifications'
-    #     }
-    # ).json()
-
-    user_qualifications = get_user_qualifications()
-
-    # user_bids = requests.get(
-    #     url=user_id_url,
-    #     headers={ 'Authorization': api_key },
-    #     params={
-    #         'fields':'initiatedBids'
-    #     }
-    # ).json()
-
-    user_bids = get_user_bids()
-
-    user_profile_info = {'user_details': user_details, 'user_competencies':user_competencies['competencies'], 'user_qualifications':user_qualifications['qualifications'], 'user_bids':user_bids['initiatedBids']}
+    user_profile_info = {'user_details': user_details, 'user_competencies':user_competencies, 'user_qualifications':user_qualifications, 'user_bids':user_bids}
 
     return user_profile_info
 

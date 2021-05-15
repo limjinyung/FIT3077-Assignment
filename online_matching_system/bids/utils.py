@@ -2,7 +2,7 @@ from decouple import config
 import requests
 from datetime import datetime
 from online_matching_system.contract.utils import generate_contract
-from online_matching_system.users.utils import get_user_competencies, users_url
+from online_matching_system.users.utils import users_url
 
 api_key = config('FIT3077_API')
 

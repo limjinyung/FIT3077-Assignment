@@ -1,6 +1,10 @@
 import os
 from flask import Flask
 from online_matching_system.config import Config
+import sys
+
+# to stop python from writing bytecode files
+sys.dont_write_bytecode = True
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -16,9 +20,3 @@ def create_app(config_class=Config):
     app.register_blueprint(contracts)
 
     return app
-
-# app = Flask(__name__)
-# app.config['SECRET_KEY'] = 'c36daf1336f217b053880cd09aeebd54'
-# app.static_folder = 'static'
-
-# from online_matching_system import routes

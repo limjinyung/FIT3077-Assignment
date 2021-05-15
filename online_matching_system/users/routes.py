@@ -1,5 +1,5 @@
 from flask import render_template, url_for, flash, redirect, request, Blueprint, make_response
-from .utils import login_user, logout_manual, user_subject, user_profile_details, check_login, login_required
+from .utils import login_user, logout_manual, user_subject, user_profile_details, check_login, login_required, check_user_model
 from flask_login import current_user
 from flask import session
 from decouple import config
@@ -58,6 +58,7 @@ def logout():
 
 @users.route('/profile', methods=['GET'])
 @login_required
+@check_user_model
 def profile():
     """
     Function to get the user's profile details

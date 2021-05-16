@@ -21,7 +21,7 @@ class BidObserver(object):
         print("The observer list: "+str(self.observer_list))
         print(self.observer_list)
         if bid_type.lower() == "open":
-            BidTimer(bid_object, 20)
+            BidTimer(bid_object, 60)
         elif bid_type.lower() == "close":
             BidTimer(bid_object, 604800)
         else:

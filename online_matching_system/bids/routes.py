@@ -34,11 +34,9 @@ def bid_index():
     bid_type = ['Open', 'Close']
 
     ongoing_bids, closed_down_bids = user_index_bids()
-    
-    if student.initialized:
-        info = student.user_details
-    else:
-        info = tutor.user_details
+
+    user_role = get_user_role()
+    info = user_role.user_details
 
     return render_template('bid.html', ongoing_bids=ongoing_bids, closed_down_bids=closed_down_bids, user_info=info,user_subjects=user_subjects, preferred_time_list=preferred_time_list, preferred_hours_per_lesson=preferred_hours_per_lesson, preferred_day_list=preferred_day_list, preferred_rate_choice=preferred_rate_choice, bid_type=bid_type)
 
@@ -124,7 +122,7 @@ def create_bid():
         bid_observer.attach(BidObject(bid_id), bid_type.lower())
 
         # call bid model to retrieve new data
-        bid_type = get_bid_type(response_value)
+        bid_type = get_bid_type(response)
         bid_type.get_bid_list()
 
     else:
@@ -154,17 +152,12 @@ def offer_bid():
     rate_request = request.form.get('rate_request')
     bid_chosen = False
 
-    # get_bid_url = bid_url + '/{}'.format(bid_id)
-
-    # response = requests.get(
-    #     url=get_bid_url,
-    #     headers={ 'Authorization': api_key },
-    # )
+    get_bid_url = bid_url + '/{}'.format(bid_id)
 
     # search the bid with bid id
     target_bid = search_bids(bid_id)
 
-    response_value = target_bid.json()
+    response_value = target_bid
 
     # check if the user is valid to make offer
     if check_valid_offer(response_value, bidder_id):
@@ -206,12 +199,7 @@ def choose_offer(bid_id, bidder_id):
     Function to choose an offer from all offers of the bid
     """
 
-    # bid_details_url = bid_url + "/{}".format(bid_id)
-
-    # bid_details = requests.get(
-    #     url=bid_details_url,
-    #     headers={ 'Authorization': api_key },
-    # ).json()
+    bid_details_url = bid_url + "/{}".format(bid_id)
 
     target_bid = search_bids(bid_id)
 
@@ -255,16 +243,12 @@ def buy_out(bid_id):
     Function to buy out a bid for the bidder
     """
 
-    # bid_details_url = bid_url + "/{}".format(bid_id)
-
-    # user_info_list = user_info()
-
-    # bid_details = requests.get(
-    #     url=bid_details_url,
-    #     headers={ 'Authorization': api_key },
-    # ).json()
+    bid_details_url = bid_url + "/{}".format(bid_id)
 
     bid_details = search_bids(bid_id)
+
+    user_role = get_user_role()
+    user_info_list = user_role.user_details
 
     # buying ouy the bid means that the tutor agrees with all the condition
     # get all the condition that the requestor requested and add it into bidder's request
@@ -333,13 +317,6 @@ def bid_messages(bid_id):
 
         bids = all_bids()
 
-        # result = requests.get(
-        #     url=bid_url,
-        #     headers={'Authorization': api_key},
-        #     params={'jwt': 'true', 'fields': 'messages'},
-        # )
-        # bids = result.json()
-
         for bid in bids:
             if bid['id'] == bid_id:
                 the_bid = bid
@@ -359,13 +336,6 @@ def bid_messages(bid_id):
         date_posted = datetime.now()
         content = request.form.get('content')
         data = {}
-
-        # result = requests.get(
-        #     url=bid_url,
-        #     headers={'Authorization': api_key},
-        #     params={'jwt': 'true', 'fields': 'messages'},
-        # )
-        # bids = result.json()
 
         bids = all_bids()
 
@@ -450,13 +420,6 @@ def reply_messages(bid_id, message_id):
 @login_required
 @check_user_model
 def choose_offer_close_bid(bid_id, message_id):
-
-    # results = requests.get(
-    #     url=bid_url+'/'+bid_id,
-    #     headers={'Authorization': api_key},
-    #     params={'jwt': 'true'}
-    # )
-    # the_bid = results.json()
 
     the_bid = search_bids(bid_id)
 

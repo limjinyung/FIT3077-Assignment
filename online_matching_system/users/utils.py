@@ -205,6 +205,8 @@ def user_index_bids():
 
     # get user role
     user_role = get_user_role()
+    # update bid data from API
+    user_role.get_user_bids()
 
     ongoing_bid = []
     closed_down_bid = []

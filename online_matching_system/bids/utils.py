@@ -15,6 +15,10 @@ contract_url = root_url + "/contract"
 
 def search_bids(bid_id):
 
+    # update bid list before search
+    open_bids.get_bid_list()
+    close_bids.get_bid_list()
+
     bid_list = open_bids.bid_list + close_bids.bid_list
 
     for bid in bid_list:
@@ -26,10 +30,16 @@ def search_bids(bid_id):
 
 def all_bids():
 
+    # update bid list before return all bids
+    open_bids.get_bid_list()
+    close_bids.get_bid_list()
+
     return open_bids.bid_list + close_bids.bid_list
 
 
-def get_bid_type(bid_json):
+def get_bid_type(bid_info):
+
+    bid_json = bid_info.json()
 
     if bid_json['type'].lower() == 'open':
         return open_bids
@@ -56,13 +66,6 @@ def close_bid(bid_id):
         }
     )
 
-    # result = requests.get(
-    #     url=bid_url+'/'+bid_id,
-    #     headers={'Authorization': api_key},
-    #     params={'jwt': 'true', 'fields': 'messages'}
-    # )
-    # print(result.json)
-
     generate_contract(bid_id)
 
     return response.status_code
@@ -72,14 +75,6 @@ def get_bid_details(bid_id):
     """
     Function to get a bid's details using the bid_id
     """
-
-    # bid_details_url = bid_url + "/{}".format(bid_id)
-
-    # response = requests.get(
-    #     url=bid_details_url,
-    #     headers={ 'Authorization': api_key },
-    #     params={'fields': 'messages'}
-    # ).json()
 
     target_bid = search_bids(bid_id)
 
@@ -107,16 +102,6 @@ def check_valid_offer(bid_info, bidder_id):
     for bid_request in bidder_requests:
         if bid_request['bidderId'] == bidder_id:
             first_bid = False
-
-    # user_id_url = users_url + "/{}".format(bidder_id)
-
-    # user_competencies = requests.get(
-    #     url=user_id_url,
-    #     headers={ 'Authorization': api_key },
-    #     params={
-    #         'fields':'competencies.subject'
-    #     }
-    # ).json()
 
     user_role = get_user_role()
 
@@ -149,12 +134,7 @@ def check_bid_status(bid_id):
     check if there's any bidder offer their bid, if yes, choose the last bidder, if no, close the bid
     """
 
-    # bid_details_url = bid_url + "/{}".format(bid_id)
-
-    # response = requests.get(
-    #     url=bid_details_url,
-    #     headers={ 'Authorization': api_key },
-    # ).json()
+    bid_details_url = bid_url + "/{}".format(bid_id)
 
     response = search_bids(bid_id)
 

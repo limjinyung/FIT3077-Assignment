@@ -82,14 +82,10 @@ def sign_contract(contract_id):
 
     return_value = {"additionalInfo": contract_details['additionalInfo']}
 
-    print(return_value)
-
     contract_update = requests.patch(
         url = contract_details_url,
         headers={ 'Authorization': api_key },
         json= return_value
     ).json()
-
-    print(contract_update)
 
     return redirect('/contract')

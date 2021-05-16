@@ -6,7 +6,7 @@ from functools import wraps
 from decouple import config
 from .user_model import student, tutor
 
-root_url = 'https://fit3077.com/api/v1'
+root_url = 'https://fit3077.com/api/v2'
 users_url = root_url + "/user"
 users_login_url = users_url + "/login"
 api_key = config('FIT3077_API')
@@ -123,9 +123,7 @@ def login_user(username, password):
                 # store the user's ID in session
                 session['user_id'] = user["id"]
 
-    create_user_model()
-
-    print("done login_user function")
+        create_user_model()
     
     return response
 

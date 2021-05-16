@@ -8,7 +8,7 @@ from .bid_model import open_bids, close_bids
 
 api_key = config('FIT3077_API')
 
-root_url = 'https://fit3077.com/api/v1'
+root_url = 'https://fit3077.com/api/v2'
 bid_url = root_url + "/bid"
 contract_url = root_url + "/contract"
 

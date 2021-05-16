@@ -10,7 +10,7 @@ from online_matching_system.bids.bid_model import open_bids, close_bids
 api_key = config('FIT3077_API')
 main = Blueprint('main', __name__)
 
-root_url = 'https://fit3077.com/api/v1'
+root_url = 'https://fit3077.com/api/v2'
 bid_url = root_url + "/bid"
 
 @main.route('/', methods=['GET'])

@@ -8,7 +8,7 @@ from online_matching_system.forms import LoginForm
 
 users = Blueprint('users', __name__)
 
-root_url = 'https://fit3077.com/api/v1'
+root_url = 'https://fit3077.com/api/v2'
 users_url = root_url + "/user"
 subjects_url = root_url + "/subject"
 users_login_url = users_url + "/login"

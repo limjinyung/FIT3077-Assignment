@@ -4,7 +4,7 @@ from flask_login import current_user
 from flask import session
 from decouple import config
 
-root_url = 'https://fit3077.com/api/v1'
+root_url = 'https://fit3077.com/api/v2'
 users_url = root_url + "/user"
 users_login_url = users_url + "/login"
 api_key = config('FIT3077_API')

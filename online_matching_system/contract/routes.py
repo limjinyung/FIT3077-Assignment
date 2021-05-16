@@ -9,7 +9,7 @@ from online_matching_system.users.utils import check_user_model
 contracts = Blueprint('contracts', __name__)
 api_key = config('FIT3077_API')
 
-root_url = 'https://fit3077.com/api/v1'
+root_url = 'https://fit3077.com/api/v2'
 contract_url = root_url + "/contract"
 
 

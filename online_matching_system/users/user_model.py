@@ -5,7 +5,7 @@ from datetime import datetime
 from decouple import config
 
 api_key = config('FIT3077_API')
-root_url = 'https://fit3077.com/api/v1/'
+root_url = 'https://fit3077.com/api/v2/'
 
 class UserModel():
     __metaclass__ = ABCMeta 

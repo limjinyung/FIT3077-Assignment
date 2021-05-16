@@ -13,7 +13,7 @@ from .utils import get_bid_details, check_valid_offer, check_contract, search_bi
 bids = Blueprint('bids', __name__)
 api_key = config('FIT3077_API')
 
-root_url = 'https://fit3077.com/api/v1'
+root_url = 'https://fit3077.com/api/v2'
 bid_url = root_url + "/bid"
 message_url = root_url + "/message"
 

@@ -322,10 +322,14 @@ def bid_messages(bid_id):
                 the_bid = bid
                 break
 
+        print(the_bid)
+
         user_role = get_user_role()
 
         profile_details = user_role.user_details
         reverse_msgs = the_bid['messages'][::-1]
+
+        print(profile_details)
 
         return render_template('bid_details_close.html', reverse_msgs=reverse_msgs, profile_details=profile_details,
                                the_bid=the_bid, preferred_time_list=preferred_time_list,
@@ -344,7 +348,10 @@ def bid_messages(bid_id):
                 the_bid = bid
                 break
 
-        if user_profile_details()['user_details']['id'] != the_bid['initiator']['id']:
+        user_role = get_user_role()
+        user_details = user_role.user_details
+
+        if user_details['id'] != the_bid['initiator']['id']:
             lesson_needed = request.form.get('number_of_lesson_offered')
             preferred_hours = request.form.get('hours_per_lesson_offered')
             preferred_time = request.form.get('preferred_time')
@@ -362,7 +369,7 @@ def bid_messages(bid_id):
                                    "preferredTime": preferred_time, "preferredDay": preferred_day,
                                    "preferredSessionPerWeek": preferred_session_per_week, 'freeLesson': free_lesson,
                                    "preferredRateChoice": preferred_rate_choice,
-                                   "preferredRate": preferred_rate, "contentFrom": user_profile_details()['user_details']['id'],
+                                   "preferredRate": preferred_rate, "contentFrom": user_details['id'],
                                    "contentTo": the_bid['initiator']['id'], "initialBid": True, "bid_chosen": False}
             }
 
@@ -446,10 +453,6 @@ def choose_offer_close_bid(bid_id, message_id):
         print("The bid before being detached: "+str(the_bid))
         # bid_observer.attach(BidObject(bid_id), 'close')
         bid_observer.find_and_detach(the_bid['id'])
-
-        # call bid model to retrieve new data
-        bid_type = get_bid_type(response)
-        bid_type.get_bid_list()
 
         flash('Deal accept successfully', 'success')
     else:

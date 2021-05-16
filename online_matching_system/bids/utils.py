@@ -40,6 +40,7 @@ def all_bids():
 def get_bid_type(bid_info):
 
     bid_json = bid_info.json()
+    print(bid_json)
 
     if bid_json['type'].lower() == 'open':
         return open_bids
@@ -65,6 +66,9 @@ def close_bid(bid_id):
             "dateClosedDown": datetime.now()
         }
     )
+
+    open_bids.get_bid_list()
+    close_bids.get_bid_list()
 
     generate_contract(bid_id)
 

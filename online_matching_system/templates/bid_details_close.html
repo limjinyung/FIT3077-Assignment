@@ -47,11 +47,11 @@
         </div>
         <h5 class="body">Messages:</h5>
             {% if profile_details['isTutor'] == True %}
-                {% for msgs in the_bid['messages'] if (msgs['additionalInfo']['initialBid']==True) and (msgs['poster']['id'] == profile_details['user_details']['id']) %}
+                {% for msgs in the_bid['messages'] if (msgs['additionalInfo']['initialBid']==True) and (msgs['poster']['id'] == profile_details['id']) %}
                     <div class="card">
                         <div class="card-body">
-                            {% if msgs['poster']['id'] == profile_details['user_details']['id'] %}
-                                {% if msgs['poster']['id'] == profile_details['user_details']['id'] %}
+                            {% if msgs['poster']['id'] == profile_details['id'] %}
+                                {% if msgs['poster']['id'] == profile_details['id'] %}
                                     <h6 class="text">Bidder: {{msgs['poster']['familyName']}} {{msgs['poster']['givenName']}}</h6>
                                     <h6 class="body">{{msgs['poster']['familyName']}} {{msgs['poster']['givenName']}}'s Offer:</h6>
                                     Lessons Needed: {{msgs['additionalInfo']['lessonNeeded']}}<br>
@@ -64,12 +64,12 @@
                                     Rate: {{msgs['additionalInfo']['preferredRate']}}<br>
                                     <hr>
                                     {% for msgs2 in reverse_msgs %}
-                                        {% if (msgs2['poster']['id'] == the_bid['initiator']['id']) and (msgs2['additionalInfo']['contentTo']==profile_details['user_details']['id']) %}
+                                        {% if (msgs2['poster']['id'] == the_bid['initiator']['id']) and (msgs2['additionalInfo']['contentTo']==profile_details['id']) %}
                                             {{the_bid['initiator']['familyName']}} {{the_bid['initiator']['givenName']}}'s Reply:<br>
                                             {{msgs2['content']}}
                                             <hr>
                                         {% endif %}
-                                        {% if msgs2['poster']['id'] == profile_details['user_details']['id'] %}
+                                        {% if msgs2['poster']['id'] == profile_details['id'] %}
                                             {{msgs2['poster']['familyName']}} {{msgs2['poster']['givenName']}}'s Reply<br>
                                             {{msgs2['content']}}
                                             <hr>

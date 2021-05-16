@@ -2,9 +2,10 @@ from flask import render_template, url_for, flash, redirect, request, Blueprint
 from decouple import config
 import requests
 import time
-from online_matching_system.users.utils import check_login, login_required, check_user_model
+from online_matching_system.users.utils import check_login, login_required, check_user_model, get_user_role
 from online_matching_system.bids.utils import filter_ongoing_bids
 from online_matching_system.users.user_model import student, tutor
+from online_matching_system.bids.bid_model import open_bids, close_bids
 
 api_key = config('FIT3077_API')
 main = Blueprint('main', __name__)
@@ -26,17 +27,15 @@ def index():
     rate_choice_offered = ['per hour', 'per session']
 
     if check_login():
-        result = requests.get(
-            url=bid_url,
-            headers={ 'Authorization': api_key },
-            params={ 'jwt': 'true' }, 
-        )
 
-        bids = result.json()
+        bids = open_bids.bid_list + close_bids.bid_list
         bids = filter_ongoing_bids(bids)
+
         open_bid = []
 
-        user_info_list = student.user_details
+        user_role = get_user_role()
+
+        user_info_list = user_role.user_details
 
         if user_info_list['isTutor']:
             view_bid = ["open", "close"]

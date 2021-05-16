@@ -35,19 +35,26 @@ def create_user_model():
     ).json()
 
     if user_info['isStudent']:
+        session['user_role'] = 'student'
+        student.get_user_id()
         student.get_user_details()
         student.get_user_bids()
         student.get_user_competencies()
         student.get_user_qualifications()
         student.get_contract_number()
         student.initialized = True
-
-    if user_info['isTutor']:
+    elif user_info['isTutor']:
+        session['user_role'] = 'tutor'
+        tutor.get_user_id()
         tutor.get_user_details()
         tutor.get_user_bids()
         tutor.get_user_competencies()
         tutor.get_user_qualifications()
         tutor.initialized = True
+    else:
+        raise Exception("user is not student and tutor. What is the user role?")
+
+    print(student, tutor)
 
     return student, tutor
 
@@ -69,21 +76,19 @@ def login_required(f):
 
 def check_user_model(f):
     """
-    initialized the user model if it is not yet initialized
+    initialized the user model if it is not yet initialized. 
+    when Flask restart stat, class data will de reset and data will be lost. Hence, we'll need to check if the user model is initalized already before we perform any action
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        try:
-            if student.initialized or tutor.initialized:
-                # print("initialized")
-                pass
-        except AttributeError:
+        if student.check_initialized() or tutor.check_initialized():
+            pass
+        else:
             create_user_model()
-            # print("reinitialized")
             return redirect(str(request.url))
         return f(*args, **kwargs)
     return decorated_function
-    
+
 
 def login_user(username, password):
 
@@ -119,6 +124,8 @@ def login_user(username, password):
                 session['user_id'] = user["id"]
 
     create_user_model()
+
+    print("done login_user function")
     
     return response
 
@@ -153,7 +160,9 @@ def user_subject(info=None):
 
     subject_list = []
 
-    user_competencies = student.user_competencies
+    user_role = get_user_role()
+
+    user_competencies = user_role.user_competencies
 
     if info != None:
         for subject in user_competencies:
@@ -164,14 +173,30 @@ def user_subject(info=None):
 
     return subject_list
 
+def get_user_role():
+    """
+    to check user's role
+    @return: student object or tutor object, if not raise exception
+    """
+
+    if session['user_role'] == 'student':
+        return student
+    elif session['user_role'] == 'tutor':
+        return tutor
+    else:
+        raise Exception("User is not student or tutor. Who is user?")
 
 def user_profile_details():
+    """
+    to get user's details and display in profile html
+    """
+
+    user_role = get_user_role()
     
-    print(student)
-    user_details = student.user_details
-    user_competencies = student.user_competencies
-    user_qualifications = student.user_qualifications
-    user_bids = student.user_bids
+    user_details = user_role.user_details
+    user_competencies = user_role.user_competencies
+    user_qualifications = user_role.user_qualifications
+    user_bids = user_role.user_bids
 
     user_profile_info = {'user_details': user_details, 'user_competencies':user_competencies, 'user_qualifications':user_qualifications, 'user_bids':user_bids}
 
@@ -180,20 +205,14 @@ def user_profile_details():
 
 def user_index_bids():
 
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    user_bids = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-        params={
-            'fields':'initiatedBids'
-        }
-    ).json()
+    # get user role
+    user_role = get_user_role()
 
     ongoing_bid = []
     closed_down_bid = []
 
-    for bid in user_bids['initiatedBids']:
+    # use for loop to separate ongoing bid and closed down bid
+    for bid in user_role.user_bids:
 
         if bid["dateClosedDown"] != None:
             closed_down_bid.append(bid)

@@ -46,7 +46,7 @@
 
         </div>
         <h5 class="body">Messages:</h5>
-            {% if profile_details['user_details']['isTutor'] == True %}
+            {% if profile_details['isTutor'] == True %}
                 {% for msgs in the_bid['messages'] if (msgs['additionalInfo']['initialBid']==True) and (msgs['poster']['id'] == profile_details['user_details']['id']) %}
                     <div class="card">
                         <div class="card-body">
@@ -94,7 +94,7 @@
 
             {% endif %}
 
-            {% if profile_details['user_details']['id'] == the_bid['initiator']['id'] %}
+            {% if profile_details['id'] == the_bid['initiator']['id'] %}
                 {{the_bid['dateClosedDown']}}
                 {% for the_msgs in the_bid['messages'] if (the_msgs['additionalInfo']['initialBid']==True) and (the_bid['dateClosedDown']!=None) %}
                     {% if the_msgs['additionalInfo']['bid_chosen']==True %}
@@ -172,7 +172,7 @@
                 {% endfor %}
 
             {% endif %}
-            {% if profile_details['user_details']['isTutor'] == True %}
+            {% if profile_details['isTutor'] == True %}
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                 Offer Bid
                 </button>

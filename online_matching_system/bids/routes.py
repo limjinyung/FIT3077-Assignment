@@ -5,9 +5,10 @@ from online_matching_system.users.user_model import student, tutor
 from datetime import datetime
 import requests
 from .observer import BidObserver, BidObject, bid_observer
-from online_matching_system.users.utils import login_required, check_user_model, user_index_bids
+from online_matching_system.users.utils import login_required, user_index_bids, get_user_role, check_user_model
 from online_matching_system.users.user_model import student, tutor
-from .utils import get_bid_details, check_valid_offer, check_contract
+from online_matching_system.bids.bid_model import open_bids, close_bids
+from .utils import get_bid_details, check_valid_offer, check_contract, search_bids, get_bid_type, all_bids
 
 bids = Blueprint('bids', __name__)
 api_key = config('FIT3077_API')
@@ -52,7 +53,6 @@ def bid_details(bid_id):
     """
 
     bid_details = get_bid_details(bid_id)
-    print(bid_details)
     return render_template('bid_details.html', bid_details=bid_details)
 
 
@@ -65,6 +65,7 @@ def create_bid():
     """
     subject_id =''
 
+    # retrieve all the form data
     initiator_id = session['user_id']
     date_created = datetime.now()
     bid_type = request.form.get('bid_type')
@@ -85,6 +86,7 @@ def create_bid():
     preferred_rate_choice = request.form.get('preferred_rate_choice')
     preferred_rate = request.form.get('preferred_rate')
 
+    # turn data into JSON format
     data = {
         "type": bid_type,
         "initiatorId": initiator_id,
@@ -105,6 +107,7 @@ def create_bid():
         }
     }
 
+    # make POST request to API
     response = requests.post(
         url=bid_url,
         headers={ 'Authorization': api_key },
@@ -113,13 +116,17 @@ def create_bid():
 
     response_value = response.json()
 
-    bid_id = response_value["id"]
-    print("Attached bid_id:"+bid_id)
-    print(bid_type)
-    bid_observer.attach(BidObject(bid_id), bid_type.lower())
-
     if response.status_code == 201:
         flash('Bid created successfully', 'success')
+
+        # get the newly created bid's id and attach to bid observer
+        bid_id = response_value["id"]
+        bid_observer.attach(BidObject(bid_id), bid_type.lower())
+
+        # call bid model to retrieve new data
+        bid_type = get_bid_type(response_value)
+        bid_type.get_bid_list()
+
     else:
         flash("There's something wrong creating the bid", 'danger')
 
@@ -147,24 +154,29 @@ def offer_bid():
     rate_request = request.form.get('rate_request')
     bid_chosen = False
 
-    get_bid_url = bid_url + '/{}'.format(bid_id)
+    # get_bid_url = bid_url + '/{}'.format(bid_id)
 
-    response = requests.get(
-        url=get_bid_url,
-        headers={ 'Authorization': api_key },
-    )
+    # response = requests.get(
+    #     url=get_bid_url,
+    #     headers={ 'Authorization': api_key },
+    # )
 
-    response_value = response.json()
+    # search the bid with bid id
+    target_bid = search_bids(bid_id)
+
+    response_value = target_bid.json()
 
     # check if the user is valid to make offer
     if check_valid_offer(response_value, bidder_id):
 
         response_additional = response_value['additionalInfo']
 
+        # add the bidder's request into bidderRequest list
         response_additional['bidderRequest'].append({"bidder":bidder,"bidderId":bidder_id,"bidId":bid_id,"numberOfLessonOffered":number_of_lesson_offered,"hoursPerLessonOffered":hours_per_lesson_offered,"preferredTimeOffered":preferred_time_offered,"preferredDayOffered":preferred_day_offered,"sessionPerWeekOffered":session_per_week_offered,"freeLesson":free_lesson,"rateChoiceOffered":rate_choice_offered,"rateRequest":rate_request, "bid_chosen":bid_chosen})
 
         return_value = {'additionalInfo': response_additional}
 
+        # partially update with PATCH request to API
         response = requests.patch(
             url=get_bid_url,
             headers={ 'Authorization': api_key },
@@ -173,6 +185,10 @@ def offer_bid():
 
         if response.status_code == 200:
             flash('Offer submitted successfully', 'success')
+
+            # call bid model to retrieve new data
+            bid_type = get_bid_type(response)
+            bid_type.get_bid_list()
         else:
             flash("There's something wrong submitting your offer. Please try again", 'danger')
 
@@ -190,33 +206,40 @@ def choose_offer(bid_id, bidder_id):
     Function to choose an offer from all offers of the bid
     """
 
-    bid_details_url = bid_url + "/{}".format(bid_id)
+    # bid_details_url = bid_url + "/{}".format(bid_id)
 
-    bid_details = requests.get(
-        url=bid_details_url,
-        headers={ 'Authorization': api_key },
-    ).json()
+    # bid_details = requests.get(
+    #     url=bid_details_url,
+    #     headers={ 'Authorization': api_key },
+    # ).json()
 
-    bid_additional_info = bid_details['additionalInfo']
+    target_bid = search_bids(bid_id)
+
+    # get the bid and update the bid_chosen boolean field
+    bid_additional_info = target_bid['additionalInfo']
 
     for bidder_request in bid_additional_info['bidderRequest']:
         if bidder_request['bidderId'] == bidder_id:
             bidder_request['bid_chosen'] = True
 
-    print(bid_additional_info)
-
+    # convert data into JSON format
     return_value = {'additionalInfo': bid_additional_info}
 
+    # PATCH the return value to partially update the API
     response = requests.patch(
         url=bid_details_url,
         headers={ 'Authorization': api_key },
         json = return_value,
     )
 
-    print(response.status_code)
-
+    # return the response status
     if (response.status_code == 200) | (response.status_code == 302):
         bid_observer.find_and_detach(bid_id)
+
+        # call bid model to retrieve new data
+        bid_type = get_bid_type(response)
+        bid_type.get_bid_list()
+
         flash('Deal accept successfully', 'success')
     else:
         flash("There's something wrong. Please try again", 'danger')
@@ -231,17 +254,20 @@ def buy_out(bid_id):
     """
     Function to buy out a bid for the bidder
     """
-    bid_details_url = bid_url + "/{}".format(bid_id)
 
-    user_info_list = user_info()
+    # bid_details_url = bid_url + "/{}".format(bid_id)
 
-    bid_details = requests.get(
-        url=bid_details_url,
-        headers={ 'Authorization': api_key },
-    ).json()
+    # user_info_list = user_info()
 
-    # print(bid_details)
+    # bid_details = requests.get(
+    #     url=bid_details_url,
+    #     headers={ 'Authorization': api_key },
+    # ).json()
 
+    bid_details = search_bids(bid_id)
+
+    # buying ouy the bid means that the tutor agrees with all the condition
+    # get all the condition that the requestor requested and add it into bidder's request
     bidder = user_info_list['userName']
     bidder_id = user_info_list['id']
     bid_id = bid_details['id']
@@ -258,22 +284,28 @@ def buy_out(bid_id):
     # check if the user is valid to make offer
     if check_valid_offer(bid_details, bidder_id):
 
+        # add the bidder request into the bidderRequest field
         response_additional = bid_details['additionalInfo']
 
         response_additional['bidderRequest'].append({"bidder":bidder,"bidderId":bidder_id,"bidId":bid_id,"numberOfLessonOffered":number_of_lesson_offered,"hoursPerLessonOffered":hours_per_lesson_offered,"preferredTimeOffered":preferred_time_offered,"preferredDayOffered":preferred_day_offered,"sessionPerWeekOffered":session_per_week_offered,"freeLesson":free_lesson,"rateChoiceOffered":rate_choice_offered,"rateRequest":rate_request, "bid_chosen":bid_chosen})
 
+        # convert the data into JSON format
         return_value = {'additionalInfo': response_additional}
 
+        # PATCH the return value to partially update the API
         response = requests.patch(
             url=bid_details_url,
             headers={ 'Authorization': api_key },
             json = return_value,
         )
 
-        print(response.status_code)
-
         if (response.status_code == 200) | (response.status_code == 302):
             bid_observer.find_and_detach(bid_id)
+
+            # call bid model to retrieve new data
+            bid_type = get_bid_type(response)
+            bid_type.get_bid_list()
+
             flash('Buy out successfully', 'success')
         else:
             flash("There's something wrong. Please try again", 'danger')
@@ -298,19 +330,26 @@ def bid_messages(bid_id):
         preferred_day_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
         preferred_rate_choice = ['per hour', 'per session']
         preferred_hours_per_lesson = ['00:30', '01:00', '01:30', '02:00', '02:30', '03:00']
-        result = requests.get(
-            url=bid_url,
-            headers={'Authorization': api_key},
-            params={'jwt': 'true', 'fields': 'messages'},
-        )
-        bids = result.json()
+
+        bids = all_bids()
+
+        # result = requests.get(
+        #     url=bid_url,
+        #     headers={'Authorization': api_key},
+        #     params={'jwt': 'true', 'fields': 'messages'},
+        # )
+        # bids = result.json()
+
         for bid in bids:
             if bid['id'] == bid_id:
                 the_bid = bid
                 break
-        profile_details = user_profile_details()
+
+        user_role = get_user_role()
+
+        profile_details = user_role.user_details
         reverse_msgs = the_bid['messages'][::-1]
-        print(the_bid)
+
         return render_template('bid_details_close.html', reverse_msgs=reverse_msgs, profile_details=profile_details,
                                the_bid=the_bid, preferred_time_list=preferred_time_list,
                                preferred_day_list=preferred_day_list, preferred_hours_per_lesson=preferred_hours_per_lesson,
@@ -320,12 +359,15 @@ def bid_messages(bid_id):
         date_posted = datetime.now()
         content = request.form.get('content')
         data = {}
-        result = requests.get(
-            url=bid_url,
-            headers={'Authorization': api_key},
-            params={'jwt': 'true', 'fields': 'messages'},
-        )
-        bids = result.json()
+
+        # result = requests.get(
+        #     url=bid_url,
+        #     headers={'Authorization': api_key},
+        #     params={'jwt': 'true', 'fields': 'messages'},
+        # )
+        # bids = result.json()
+
+        bids = all_bids()
 
         for bid in bids:
             if bid['id'] == bid_id:
@@ -353,12 +395,14 @@ def bid_messages(bid_id):
                                    "preferredRate": preferred_rate, "contentFrom": user_profile_details()['user_details']['id'],
                                    "contentTo": the_bid['initiator']['id'], "initialBid": True, "bid_chosen": False}
             }
+
+        # TODO: message model
+        
         results = requests.post(
             url=message_url,
             headers={'Authorization': api_key},
             json=data
         )
-        # print(results.status_code)
 
     return redirect('/bid_details_close/'+bid_id)
 
@@ -372,6 +416,8 @@ def reply_messages(bid_id, message_id):
     """
     date_posted = datetime.now()
     content = request.form.get('content')
+
+    # TODO: message model
 
     results = requests.get(
         url=message_url+'/'+message_id,
@@ -387,6 +433,9 @@ def reply_messages(bid_id, message_id):
         "content": content,
         "additionalInfo": {"contentFrom": session['user_id'], "contentTo": the_msg["poster"]["id"]}
     }
+
+    # TODO: message model
+
     results = requests.post(
         url=message_url,
         headers={'Authorization': api_key},
@@ -401,13 +450,18 @@ def reply_messages(bid_id, message_id):
 @login_required
 @check_user_model
 def choose_offer_close_bid(bid_id, message_id):
-    results = requests.get(
-        url=bid_url+'/'+bid_id,
-        headers={'Authorization': api_key},
-        params={'jwt': 'true'}
-    )
-    the_bid = results.json()
 
+    # results = requests.get(
+    #     url=bid_url+'/'+bid_id,
+    #     headers={'Authorization': api_key},
+    #     params={'jwt': 'true'}
+    # )
+    # the_bid = results.json()
+
+    the_bid = search_bids(bid_id)
+
+    # TODO: message model
+    
     results = requests.get(
         url=message_url+'/'+message_id,
         headers={'Authorization': api_key},
@@ -429,6 +483,11 @@ def choose_offer_close_bid(bid_id, message_id):
         print("The bid before being detached: "+str(the_bid))
         # bid_observer.attach(BidObject(bid_id), 'close')
         bid_observer.find_and_detach(the_bid['id'])
+
+        # call bid model to retrieve new data
+        bid_type = get_bid_type(response)
+        bid_type.get_bid_list()
+
         flash('Deal accept successfully', 'success')
     else:
         flash("There's something wrong. Please try again", 'danger')

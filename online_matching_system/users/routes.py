@@ -35,10 +35,8 @@ def login():
             jwt = json_data['jwt']
 
             # redirect to another and save the JWT in cookies
-            response = make_response(redirect('/'))
             session['jwt'] = jwt
-            # response.set_cookie('access_token', jwt, httponly=True)
-            return response
+            return redirect('/')
 
         else:
             # flash error message

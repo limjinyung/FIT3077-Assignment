@@ -1,4 +1,4 @@
-import abc
+from abc import ABCMeta
 from flask import session
 import requests
 from datetime import datetime
@@ -7,12 +7,12 @@ from decouple import config
 api_key = config('FIT3077_API')
 root_url = 'https://fit3077.com/api/v1/'
 
-class UserModel(object):
-
-    __metaclass__ = abc.ABCMeta
+class UserModel():
+    __metaclass__ = ABCMeta 
 
     def __init__(self):
-        self.user_id = session['user_id']
+        self.user_id = None
+        self.initialized = False
         self.user_details = None
         self.user_competencies = None
         self.user_qualifications = None
@@ -20,7 +20,13 @@ class UserModel(object):
         self.user_contracts = None
         self.is_student = None
         self.is_tutor = None
-        self.initialized = False
+
+    def __str__(self):
+        return "{}, {}".format(self.user_id ,self.initialized)
+        
+    def get_user_id(self):
+
+        self.user_id = session.get('user_id',0)
 
     def get_user_details(self):
         """
@@ -110,10 +116,15 @@ class UserModel(object):
 
         self.user_bids = user_bids['initiatedBids']
 
+    def check_initialized(self):
+
+        return self.initialized
+
 
 class StudentModel(UserModel):
 
     def __init__(self):
+        UserModel.__init__(self)
         self.contract_number = 0
 
     def get_contract_number(self):
@@ -142,6 +153,7 @@ class StudentModel(UserModel):
 class TutorModel(UserModel):
 
     def __init__(self):
+        UserModel.__init__(self)
         self.bid_monitor_list = []
 
 

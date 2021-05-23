@@ -4,7 +4,7 @@ from flask_login import current_user
 from flask import session, flash, redirect, render_template, url_for, request
 from functools import wraps
 from decouple import config
-from .user_model import student, tutor
+from online_matching_system.models.user_model import student, tutor
 
 root_url = 'https://fit3077.com/api/v2'
 users_url = root_url + "/user"

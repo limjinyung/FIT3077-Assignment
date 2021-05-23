@@ -1,13 +1,12 @@
 from flask import render_template, url_for, flash, redirect, request, Blueprint, session
 from decouple import config
 from online_matching_system.users.utils import user_subject
-from online_matching_system.users.user_model import student, tutor
 from datetime import datetime
 import requests
 from .observer import BidObserver, BidObject, bid_observer
 from online_matching_system.users.utils import login_required, user_index_bids, get_user_role, check_user_model
-from online_matching_system.users.user_model import student, tutor
-from online_matching_system.bids.bid_model import open_bids, close_bids
+from online_matching_system.models.user_model import student, tutor
+from online_matching_system.models.bid_model import open_bids, close_bids
 from .utils import get_bid_details, check_valid_offer, check_contract, search_bids, get_bid_type, all_bids
 
 bids = Blueprint('bids', __name__)

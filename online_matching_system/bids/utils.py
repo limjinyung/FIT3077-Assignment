@@ -3,8 +3,8 @@ import requests
 from datetime import datetime
 from online_matching_system.contract.utils import generate_contract
 from online_matching_system.users.utils import users_url, get_user_role
-from online_matching_system.users.user_model import student, tutor
-from .bid_model import open_bids, close_bids
+from online_matching_system.models.user_model import student, tutor
+from online_matching_system.models.bid_model import open_bids, close_bids
 
 api_key = config('FIT3077_API')
 

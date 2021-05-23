@@ -4,8 +4,8 @@ import requests
 import time
 from online_matching_system.users.utils import check_login, login_required, check_user_model, get_user_role
 from online_matching_system.bids.utils import filter_ongoing_bids
-from online_matching_system.users.user_model import student, tutor
-from online_matching_system.bids.bid_model import open_bids, close_bids
+from online_matching_system.models.user_model import student, tutor
+from online_matching_system.models.bid_model import open_bids, close_bids
 
 api_key = config('FIT3077_API')
 main = Blueprint('main', __name__)

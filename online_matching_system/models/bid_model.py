@@ -26,7 +26,7 @@ class BidModel(object):
             if bid["id"] == bid_id:
                 return bid
         
-        raise Exception("No bid with this bid id")
+        return None
 
 
 class OpenBid(BidModel):
@@ -70,8 +70,21 @@ class CloseBid(BidModel):
 
         self.bid_list = close_bid_list
 
-
 open_bids = OpenBid()
 open_bids.get_bid_list()
 close_bids = CloseBid()
 close_bids.get_bid_list()
+
+def search_bids(bid_id):
+
+    # update bid list before search
+    open_bids.get_bid_list()
+    close_bids.get_bid_list()
+
+    bid_list = open_bids.bid_list + close_bids.bid_list
+
+    for bid in bid_list:
+        if bid['id'] == bid_id:
+            return bid
+
+    raise Exception("No bid with this bid id.")

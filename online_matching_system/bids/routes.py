@@ -465,7 +465,6 @@ def choose_offer_close_bid(bid_id, message_id):
 @check_user_model
 def bid_monitor_index():
 
-    # bid_list = bid_monitor.monitor_list
     return render_template('bid_monitor.html')
 
 
@@ -483,7 +482,16 @@ def get_monitor_list():
 def monitor_bid_details(bid_id):
 
     print(bid_id)
+    return render_template('bid_monitor_details.html', bid_id=bid_id)
+
+
+@bids.route('/get_monitor_bid/<bid_id>', methods=["GET"])
+@login_required
+@check_user_model
+def get_monitor_bid(bid_id):
+
     return jsonify(monitor.get_monitor_bid(bid_id))
+
 
 @bids.route('/add_bid_to_monitor/<bid_id>', methods=["GET","POST"])
 @login_required

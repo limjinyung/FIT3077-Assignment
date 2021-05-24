@@ -1,9 +1,9 @@
-from flask import render_template, url_for, flash, redirect, request, Blueprint, session
+from flask import render_template, url_for, flash, redirect, request, Blueprint, session, jsonify
 from decouple import config
 from online_matching_system.users.utils import user_subject
 from datetime import datetime
 import requests
-from .observer import BidObserver, BidObject, bid_observer
+from .observer import BidObserver, BidObject, bid_observer, bid_monitor as monitor
 from online_matching_system.users.utils import login_required, user_index_bids, get_user_role, check_user_model
 from online_matching_system.models.user_model import student, tutor
 from online_matching_system.models.bid_model import open_bids, close_bids
@@ -458,3 +458,47 @@ def choose_offer_close_bid(bid_id, message_id):
         flash("There's something wrong. Please try again", 'danger')
 
     return redirect('/bid')
+
+
+@bids.route('/bid_monitor', methods=["GET","POST"])
+@login_required
+@check_user_model
+def bid_monitor_index():
+
+    # bid_list = bid_monitor.monitor_list
+    return render_template('bid_monitor.html')
+
+
+@bids.route('/monitor_list', methods=["GET"])
+@login_required
+@check_user_model
+def get_monitor_list():
+
+    return jsonify(monitor.get_monitor_list())
+
+
+@bids.route('/monitor_bid_details/<bid_id>', methods=["GET"])
+@login_required
+@check_user_model
+def monitor_bid_details(bid_id):
+
+    print(bid_id)
+    return jsonify(monitor.get_monitor_bid(bid_id))
+
+@bids.route('/add_bid_to_monitor/<bid_id>', methods=["GET","POST"])
+@login_required
+@check_user_model
+def add_bid_to_monitor(bid_id):
+
+    try:
+        bid = search_bids(bid_id)
+        status = monitor.add_bid(bid_id)
+
+        if status:
+            flash('Bid sucessfully added to monitor list.', 'sucess')
+        else:
+            flash('Bid added into monitor list already', 'danger')
+    except Exception as e:
+        print('Exception occur in add_bid: {}'.formate(e))
+
+    return render_template('bid_monitor.html')

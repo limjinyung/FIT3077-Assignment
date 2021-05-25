@@ -19,6 +19,9 @@
               <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="/contract">Contract</a>
               </li>
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="/bid_monitor">Bid Monitor</a>
+              </li>
               <li class="nav-item" style="float:right;">
                 <a class="nav-link" href="/logout">Logout</a>
               </li>
@@ -58,6 +61,7 @@
               {% if bid['type'] == 'open' %}
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bidderRequest-{{bid['id']}}">Offer</button>
                 <a href="{{ url_for('bids.buy_out',bid_id=bid.id) }}" class="btn btn-primary">Buy Out</a>
+                <a href="{{ url_for('bids.add_bid_to_monitor',bid_id=bid.id) }}" class="btn btn-primary">Monitor</a>
               {% endif %}
               {% if bid['type'] == 'close' %}
                 <a href="{{ url_for('bids.bid_messages', bid_id=bid['id']) }}" class="btn btn-primary" data-bs-target="#Backdrop">

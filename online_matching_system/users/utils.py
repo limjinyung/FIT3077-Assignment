@@ -4,8 +4,9 @@ from flask_login import current_user
 from flask import session, flash, redirect, render_template, url_for, request
 from functools import wraps
 from decouple import config
+from online_matching_system.models.user_model import student, tutor
 
-root_url = 'https://fit3077.com/api/v1'
+root_url = 'https://fit3077.com/api/v2'
 users_url = root_url + "/user"
 users_login_url = users_url + "/login"
 api_key = config('FIT3077_API')
@@ -20,7 +21,48 @@ def check_login():
         return False
 
 
+def create_user_model():
+    """
+    initialized the user model
+    format: boolean
+    """
+
+    user_id_url = root_url + "/{}/{}".format("user", session['user_id'])
+
+    user_info = requests.get(
+        url=user_id_url,
+        headers={ 'Authorization': api_key },
+    ).json()
+
+    if user_info['isStudent']:
+        session['user_role'] = 'student'
+        student.get_user_id()
+        student.get_user_details()
+        student.get_user_bids()
+        student.get_user_competencies()
+        student.get_user_qualifications()
+        student.get_contract_number()
+        student.initialized = True
+    elif user_info['isTutor']:
+        session['user_role'] = 'tutor'
+        tutor.get_user_id()
+        tutor.get_user_details()
+        tutor.get_user_bids()
+        tutor.get_user_competencies()
+        tutor.get_user_qualifications()
+        tutor.initialized = True
+    else:
+        raise Exception("user is not student and tutor. What is the user role?")
+
+    print(student, tutor)
+
+    return student, tutor
+
+
 def login_required(f):
+    """
+    to ask user login first before perform any action
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         try:
@@ -28,6 +70,22 @@ def login_required(f):
                 pass
         except KeyError:
             return redirect(url_for('users.login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def check_user_model(f):
+    """
+    initialized the user model if it is not yet initialized. 
+    when Flask restart stat, class data will de reset and data will be lost. Hence, we'll need to check if the user model is initalized already before we perform any action
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if student.check_initialized() or tutor.check_initialized():
+            pass
+        else:
+            create_user_model()
+            return redirect(str(request.url))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -64,6 +122,8 @@ def login_user(username, password):
             if user['userName'] == username:
                 # store the user's ID in session
                 session['user_id'] = user["id"]
+
+        create_user_model()
     
     return response
 
@@ -94,159 +154,65 @@ def decode_jwt(encoded_jwt):
     print('message: ' + str(message))
 
 
-def get_user_id():
-
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    user_info = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-    ).json()
-
-    return user_info['id']
-
-
-def user_info():
-
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    user_info = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-    ).json()
-
-    return user_info
-
-
 def user_subject(info=None):
 
     subject_list = []
 
-    user_id_url = users_url + "/{}".format(session['user_id'])
+    user_role = get_user_role()
 
-    user_competencies = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-        params={
-            'fields':'competencies.subject'
-        }
-    ).json()
+    user_competencies = user_role.user_competencies
 
     if info != None:
-        for subject in user_competencies['competencies']:
+        for subject in user_competencies:
             subject_list.append(subject['subject'][str(info)])
     else:
-        for subject in user_competencies['competencies']:
+        for subject in user_competencies:
             subject_list.append(subject['subject'])
 
     return subject_list
 
+def get_user_role():
+    """
+    to check user's role
+    @return: student object or tutor object, if not raise exception
+    """
 
-def get_user_competencies():
-
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    user_competencies = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-        params={
-            'fields':'competencies.subject'
-        }
-    ).json()
-    
-    return user_competencies
-
-
-def get_user_qualifications():
-
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    user_qualifications = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-        params={
-            'fields':'qualifications'
-        }
-    ).json()
-
-    return user_qualifications
-
-
-def get_user_bids():
-
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    user_bids = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-        params={
-            'fields':'initiatedBids'
-        }
-    ).json()
-
-    return user_bids
+    if session['user_role'] == 'student':
+        return student
+    elif session['user_role'] == 'tutor':
+        return tutor
+    else:
+        raise Exception("User is not student or tutor. Who is user?")
 
 def user_profile_details():
+    """
+    to get user's details and display in profile html
+    """
 
-    user_id_url = users_url + "/{}".format(session['user_id'])
+    user_role = get_user_role()
+    
+    user_details = user_role.user_details
+    user_competencies = user_role.user_competencies
+    user_qualifications = user_role.user_qualifications
+    user_bids = user_role.user_bids
 
-    # TODO: merge all params in one requests
-    user_details = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-    ).json()
-
-    # user_competencies = requests.get(
-    #     url=user_id_url,
-    #     headers={ 'Authorization': api_key },
-    #     params={
-    #         'fields':'competencies.subject'
-    #     }
-    # ).json()
-
-    user_competencies = get_user_competencies()
-
-    # user_qualifications = requests.get(
-    #     url=user_id_url,
-    #     headers={ 'Authorization': api_key },
-    #     params={
-    #         'fields':'qualifications'
-    #     }
-    # ).json()
-
-    user_qualifications = get_user_qualifications()
-
-    # user_bids = requests.get(
-    #     url=user_id_url,
-    #     headers={ 'Authorization': api_key },
-    #     params={
-    #         'fields':'initiatedBids'
-    #     }
-    # ).json()
-
-    user_bids = get_user_bids()
-
-    user_profile_info = {'user_details': user_details, 'user_competencies':user_competencies['competencies'], 'user_qualifications':user_qualifications['qualifications'], 'user_bids':user_bids['initiatedBids']}
+    user_profile_info = {'user_details': user_details, 'user_competencies':user_competencies, 'user_qualifications':user_qualifications, 'user_bids':user_bids}
 
     return user_profile_info
 
 
 def user_index_bids():
 
-    user_id_url = users_url + "/{}".format(session['user_id'])
-
-    user_bids = requests.get(
-        url=user_id_url,
-        headers={ 'Authorization': api_key },
-        params={
-            'fields':'initiatedBids'
-        }
-    ).json()
+    # get user role
+    user_role = get_user_role()
+    # update bid data from API
+    user_role.get_user_bids()
 
     ongoing_bid = []
     closed_down_bid = []
 
-    for bid in user_bids['initiatedBids']:
+    # use for loop to separate ongoing bid and closed down bid
+    for bid in user_role.user_bids:
 
         if bid["dateClosedDown"] != None:
             closed_down_bid.append(bid)

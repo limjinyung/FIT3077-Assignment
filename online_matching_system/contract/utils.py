@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
 from decouple import config
 import requests
+from online_matching_system.models.bid_model import search_bids
 
 api_key = config('FIT3077_API')
 
-root_url = 'https://fit3077.com/api/v1'
+root_url = 'https://fit3077.com/api/v2'
 bid_url = root_url + "/bid"
 contract_url = root_url + "/contract"
 
@@ -32,13 +33,13 @@ def generate_contract(bid_id):
     """
 
     bid_details_url = bid_url + "/{}".format(bid_id)
-    print("The bid details url: "+str(bid_details_url))
-    bid_details = requests.get(
-        url=bid_details_url,
-        headers={ 'Authorization': api_key },
-        params={'fields':'messages'}
-    ).json()
-    print(bid_details_url)
+    # bid_details = requests.get(
+    #     url=bid_details_url,
+    #     headers={ 'Authorization': api_key },
+    #     params={'fields':'messages'}
+    # ).json()
+
+    bid_details = search_bids(bid_id)
 
     requestor_id = bid_details['initiator']['id']
     subject_id = bid_details['subject']['id']

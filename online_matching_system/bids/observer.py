@@ -2,7 +2,8 @@ import time
 from datetime import datetime
 import threading, queue
 from flask import redirect, url_for, make_response
-from .utils import close_bid, check_bid_status
+from .utils import close_bid, check_bid_status, search_bids
+from online_matching_system.models.bid_model import open_bids, close_bids
 
 
 class BidObserver(object):
@@ -21,7 +22,8 @@ class BidObserver(object):
         print("The observer list: "+str(self.observer_list))
         print(self.observer_list)
         if bid_type.lower() == "open":
-            BidTimer(bid_object, 20)
+            BidTimer(bid_object, 604800)
+            # BidTimer(bid_object, 60)
         elif bid_type.lower() == "close":
             BidTimer(bid_object, 604800)
         else:
@@ -96,4 +98,54 @@ class BidObject():
         self.bought = False
 
 
+class BidMonitor():
+
+    def __init__(self):
+        self.monitor_list = []
+        self.thread = threading.Thread(target=self.run_monitor, args=())
+        self.thread.start()
+
+    def get_monitor_list(self):
+        return self.monitor_list
+
+    def get_monitor_bid(self, bid_id):
+        print(bid_id)
+        for bid in self.monitor_list:
+            if bid['id'] == bid_id:
+                return bid
+        return None
+
+    def add_bid(self, bid_id):
+        bid = search_bids(bid_id)
+
+        if bid not in self.monitor_list:
+            self.monitor_list.append(bid)
+            return True
+            
+        return False
+
+    def remove_bid(self, bid_id):
+        bid = search_bids(bid_id)
+        self.monitor_list.remove(bid)
+
+    def check_bid_closed_down(self):
+        for bid in self.monitor_list:
+            if bid['dateClosedDown']:
+                self.monitor_list.remove(bid)
+
+    def update_bid(self):
+        new_monitor_list = []
+        for bid in self.monitor_list:
+            new_monitor_list.append(search_bids(bid['id']))
+
+        self.monitor_list = new_monitor_list
+
+    def run_monitor(self):
+        while True:
+            self.check_bid_closed_down()
+            self.update_bid()
+            time.sleep(3)
+
+
 bid_observer = BidObserver()
+bid_monitor = BidMonitor()

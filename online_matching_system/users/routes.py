@@ -1,5 +1,5 @@
 from flask import render_template, url_for, flash, redirect, request, Blueprint, make_response
-from .utils import login_user, logout_manual, user_subject, user_profile_details, check_login, login_required
+from .utils import login_user, logout_manual, user_subject, user_profile_details, check_login, login_required, check_user_model
 from flask_login import current_user
 from flask import session
 from decouple import config
@@ -8,7 +8,7 @@ from online_matching_system.forms import LoginForm
 
 users = Blueprint('users', __name__)
 
-root_url = 'https://fit3077.com/api/v1'
+root_url = 'https://fit3077.com/api/v2'
 users_url = root_url + "/user"
 subjects_url = root_url + "/subject"
 users_login_url = users_url + "/login"
@@ -35,10 +35,8 @@ def login():
             jwt = json_data['jwt']
 
             # redirect to another and save the JWT in cookies
-            response = make_response(redirect('/'))
             session['jwt'] = jwt
-            # response.set_cookie('access_token', jwt, httponly=True)
-            return response
+            return redirect('/')
 
         else:
             # flash error message
@@ -58,6 +56,7 @@ def logout():
 
 @users.route('/profile', methods=['GET'])
 @login_required
+@check_user_model
 def profile():
     """
     Function to get the user's profile details

@@ -276,7 +276,7 @@ def offer_bid():
             flash("There's something wrong submitting your offer. Please try again", 'danger')
 
     else:
-         flash("You have already offered the bid or you dont have competency offer this bid.", 'danger')
+         flash("You have already offered the bid or you dont have competency or competency level to offer this bid.", 'danger')
 
     return redirect('/')
 
@@ -384,7 +384,7 @@ def buy_out(bid_id):
         else:
             flash("There's something wrong. Please try again", 'danger')
     else:
-        flash("You have already offered the bid or you dont have competency offer this bid.", 'danger')
+        flash("You have already offered the bid or you dont have competency or competency level to offer this bid.", 'danger')
 
     return redirect('/')
 

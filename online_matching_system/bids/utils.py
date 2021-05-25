@@ -97,25 +97,53 @@ def get_bid_details(bid_id):
 def check_valid_offer(bid_info, bidder_id):
     """
     to check if the user submit the offer more than once
+    and also to check if the user has the competencies to offer/buy out a bid
     """
     user_has_competencies = False
     first_bid = True
 
+    # to check if the user has bidded the bid before
     bidder_requests = bid_info['additionalInfo']['bidderRequest']
 
     for bid_request in bidder_requests:
         if bid_request['bidderId'] == bidder_id:
             first_bid = False
 
+    # to check if the user has the competencies to bid
     user_role = get_user_role()
 
     user_competencies = user_role.user_competencies
 
     for competency in user_competencies:
         if competency["subject"]["id"] == bid_info["subject"]["id"]:
+            bidder_level = competency['level']
             user_has_competencies = True
 
-    return (user_has_competencies and first_bid)
+    # check if bidder's competencies is two level higher than requestor competencies
+    # get initiator's competencies
+    initiator_id = bid_info['initiator']['id']
+
+    # fetch initiator's details to get initiator's competencies
+    initiator_user_url = root_url + "/user/{}".format(initiator_id)
+
+    response = requests.get(
+        url=initiator_user_url,
+        headers={ 'Authorization': api_key },
+        params={
+            'fields':'competencies.subject'
+        }
+    ).json()
+
+    # initiator's competencies
+    initiator_competencies = response['competencies']
+    for competency in initiator_competencies:
+        if competency['subject']['id'] == bid_info['subject']['id']:
+            initiator_level = competency['level']
+
+    # check the level
+    enough_level = (bidder_level - initiator_level) >= 2
+
+    return (user_has_competencies and first_bid and enough_level)
 
 
 def filter_ongoing_bids(bid_list):

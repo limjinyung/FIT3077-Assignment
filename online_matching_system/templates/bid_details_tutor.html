@@ -65,22 +65,82 @@
                                 <p class="card-text"><strong>Free Lesson: </strong> {{ bid.freeLesson }} </p>
                                 <p class="card-text"><strong>Rate: </strong> RM{{ bid.rateRequest }} {{ bid.rateChoiceOffered }} </p>
                                 {% if not bid_details.bid_date_closed_down %}
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#update_bid_modal">Edit</button>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                    Edit
+                                  </button>
                                 {% endif %}
                                 </div>
                                 </div>
                                 </div>
                         </div>
                         <!-- Modal -->
-                        <div class="modal fade" id="#update_bid_modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-scrollable">
+                        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                <h5 class="modal-title" id="staticBackdropLabel">Offer Bid</h5>
+                                <h5 class="modal-title" id="exampleModalLabel">Update Bid</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-
+                                    <form action="{{ url_for('bids.update_bid') }}" method="POST">
+                                        {{ csrf_token }}
+                                        <input type="hidden" name="bidder" value="{{user_info.userName}}">
+                                        <input type="hidden" name="bidder_id" value="{{user_info.id}}">
+                                        <input type="hidden" name="bid_id" value="{{bid.bidId}}">
+                                        <div class="mb-3">
+                                            <label class="form-label">Number of Lesson Offered:</label>
+                                            <input type="number" class="form-control" name="number_of_lesson_offered">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Hours Per Lesson Offered:</label>
+                                            <select class="form-select" name='hours_per_lesson_offered'>
+                                                {% for hour in hours_per_lesson_offered %}
+                                                <option value="{{hour}}">{{hour}}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Preferred Time Offered:</label>
+                                            <select class="form-select" name='preferred_time_offered'>
+                                                {% for time in preferred_time_list %}
+                                                <option value="{{time}}">{{time}}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Preferred Day Offered:</label>
+                                            <select class="form-select" name='preferred_day_offered'>
+                                                {% for day in preferred_day_list %}
+                                                <option value="{{day}}">{{day}}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Session Per Week Offered:</label>
+                                            <input type="number" class="form-control" name="session_per_week_offered">
+                                        </div>
+                                        <div class=" mb-3 form-check">
+                                          <input class="form-check-input" type="checkbox" name="free_lesson" id="flexCheckDefault">
+                                          <label class="form-check-label" for="flexCheckDefault">
+                                            Free Lesson
+                                          </label>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Rate Choice Offered:</label>
+                                            <select class="form-select" name='rate_choice_offered'>
+                                                {% for choice in rate_choice_offered %}
+                                                <option value="{{choice}}">{{choice}}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Rate Request:</label>
+                                            <input type="number" class="form-control" name="rate_request">
+                                        </div>
+                                        <input type="submit" class="btn btn-primary" value="Submit"></input>
+                                </div>
+                                <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 </div>
                             </div>
                             </div>

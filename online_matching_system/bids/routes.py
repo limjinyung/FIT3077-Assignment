@@ -62,10 +62,86 @@ def bid_details_tutor(bid_id):
     @params
     """
 
-    bid_details = get_bid_details(bid_id)
-    user_role = get_user_role()
-    user_info_list = user_role.user_details
-    return render_template('bid_details_tutor.html', bid_details=bid_details, user_info=user_info_list)
+    if request.method == 'GET':
+        bid_details = get_bid_details(bid_id)
+        user_role = get_user_role()
+        user_info_list = user_role.user_details
+
+        preferred_time_list = ['08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30']
+        hours_per_lesson_offered = ['00:30', '01:00', '01:30', '02:00', '02:30', '03:00']
+        preferred_day_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+        rate_choice_offered = ['per hour', 'per session']
+        return render_template('bid_details_tutor.html', 
+                                bid_details=bid_details, 
+                                user_info=user_info_list,
+                                preferred_time_list=preferred_time_list,
+                                hours_per_lesson_offered=hours_per_lesson_offered,
+                                preferred_day_list=preferred_day_list,
+                                rate_choice_offered=rate_choice_offered)
+    else:
+        raise Exception('Request method not allowed in bid_details_tutor function ')
+
+
+@bids.route('/update_bid', methods=["POST"])
+@login_required
+@check_user_model
+def update_bid():
+    """
+    update the bids
+    """
+    bidder = request.form.get('bidder')
+    bidder_id = request.form.get('bidder_id')
+    bid_id = request.form.get('bid_id')
+    number_of_lesson_offered = request.form.get('number_of_lesson_offered')
+    hours_per_lesson_offered = request.form.get('hours_per_lesson_offered')
+    preferred_time_offered = request.form.get('preferred_time_offered')
+    preferred_day_offered = request.form.get('preferred_day_offered')
+    session_per_week_offered = request.form.get('session_per_week_offered')
+    free_lesson = request.form.get('free_lesson')
+    rate_choice_offered = request.form.get('rate_choice_offered')
+    rate_request = request.form.get('rate_request')
+    bid_chosen = False
+    
+    get_bid_url = bid_url + '/{}'.format(bid_id)
+
+    # search the bid with bid id
+    print(bid_id)
+    target_bid = search_bids(bid_id)
+    target_bid_additional_info = target_bid['additionalInfo']
+
+    # for bidder_request in target_bid_additional_info['bidderRequest']:
+    for request_number in range(len(target_bid_additional_info['bidderRequest'])):
+        # find the old request
+        if target_bid_additional_info['bidderRequest'][request_number]['bidderId'] == bidder_id:
+            # first delete the request
+            del target_bid_additional_info['bidderRequest'][request_number]
+
+            # add the new bidder's request into bidderRequest list
+            target_bid_additional_info['bidderRequest'].append({"bidder":bidder,"bidderId":bidder_id,"bidId":bid_id,"numberOfLessonOffered":number_of_lesson_offered,"hoursPerLessonOffered":hours_per_lesson_offered,"preferredTimeOffered":preferred_time_offered,"preferredDayOffered":preferred_day_offered,"sessionPerWeekOffered":session_per_week_offered,"freeLesson":free_lesson,"rateChoiceOffered":rate_choice_offered,"rateRequest":rate_request, "bid_chosen":bid_chosen})
+
+            return_value = {'additionalInfo':target_bid_additional_info}
+
+            # partially update with PATCH request to API
+            response = requests.patch(
+                url=get_bid_url,
+                headers={ 'Authorization': api_key },
+                json = return_value,
+            )
+
+            if response.status_code == 200:
+
+                # call bid model to retrieve new data
+                bid_type = get_bid_type(response)
+                bid_type.get_bid_list()
+                flash('Offer submitted successfully', 'success')
+            else:
+                flash("There's something wrong submitting your offer. Please try again", 'danger')
+
+            return redirect('/bid_details_tutor/{}'.format(bid_id))
+    
+    flash("Can't find the bidder request in update bid function")
+    return redirect('/bid_details_tutor/{}'.format(bid_id))
+        
 
 
 @bids.route('/create_bid', methods=["POST"])
@@ -518,7 +594,7 @@ def add_bid_to_monitor(bid_id):
         status = monitor.add_bid(bid_id)
 
         if status:
-            flash('Bid sucessfully added to monitor list.', 'sucess')
+            flash('Bid sucessfully added to monitor list.', 'success')
         else:
             flash('Bid added into monitor list already', 'danger')
     except Exception as e:

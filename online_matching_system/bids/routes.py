@@ -53,6 +53,21 @@ def bid_details(bid_id):
     return render_template('bid_details.html', bid_details=bid_details)
 
 
+@bids.route('/bid_details_tutor/<bid_id>', methods=["GET"])
+@login_required
+@check_user_model
+def bid_details_tutor(bid_id):
+    """
+    Function to obtain the bid details based on the bid_id to be displayed on the UI
+    @params
+    """
+
+    bid_details = get_bid_details(bid_id)
+    user_role = get_user_role()
+    user_info_list = user_role.user_details
+    return render_template('bid_details_tutor.html', bid_details=bid_details, user_info=user_info_list)
+
+
 @bids.route('/create_bid', methods=["POST"])
 @login_required
 @check_user_model

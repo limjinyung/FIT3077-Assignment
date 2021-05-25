@@ -51,7 +51,6 @@ var bid_id = $('#bid-id').data();
       type: "get",
       headers: {"Content-Type": "application/json"},
       success: function(data) {
-        console.log(data)
         var bid = data;
         var bid_html = '';
         bid_html += '<div class="card">';
@@ -82,6 +81,7 @@ var bid_id = $('#bid-id').data();
                 bid_html += '<p class="card-text">Free Lesson: ' + bid.additionalInfo.bidderRequest[j].freeLesson + '</p>';
                 bid_html += '</div>'
                 bid_html += '</div>'
+                bid_html += '</br>'
             }
         }
         else{

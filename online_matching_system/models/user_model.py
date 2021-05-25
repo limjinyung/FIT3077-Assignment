@@ -1,4 +1,4 @@
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from flask import session
 import requests
 from datetime import datetime
@@ -97,24 +97,9 @@ class UserModel():
         self.isStudent = user_info['isStudent']
         self.isTutor = user_info['isTutor']
 
-
+    @abstractmethod
     def get_user_bids(self):
-        """
-        get user's bid from API
-        format: a list of JSON
-        """
-
-        user_id_url = root_url + "/{}/{}".format("user", session['user_id'])
-
-        user_bids = requests.get(
-            url=user_id_url,
-            headers={ 'Authorization': api_key },
-            params={
-                'fields':'initiatedBids'
-            }
-        ).json()
-
-        self.user_bids = user_bids['initiatedBids']
+        pass
 
     def check_initialized(self):
 
@@ -149,12 +134,54 @@ class StudentModel(UserModel):
 
         self.contract_number = user_contract
 
+    def get_user_bids(self):
+        """
+        get user's bid from API
+        format: a list of JSON
+        """
+
+        user_id_url = root_url + "/{}/{}".format("user", session['user_id'])
+
+        user_bids = requests.get(
+            url=user_id_url,
+            headers={ 'Authorization': api_key },
+            params={
+                'fields':'initiatedBids'
+            }
+        ).json()
+
+        self.user_bids = user_bids['initiatedBids']
+
 
 class TutorModel(UserModel):
 
     def __init__(self):
         UserModel.__init__(self)
         self.bid_monitor_list = []
+
+    def get_user_bids(self):
+        """
+        to get the bids that a tutor have bid, fetch all of the bid and loop thru the bidderRequest
+        field to check if the tutor has bid on the bid. Append and assign the list to tutor.user_bids
+        """
+
+        bid_url = root_url + "/{}".format("bid")
+
+        bids = requests.get(
+            url=bid_url,
+            headers={ 'Authorization': api_key },
+        ).json()
+
+        user_bid = []
+
+        for bid in bids:
+            if bid['additionalInfo']:
+                bidder_request_list = bid['additionalInfo']['bidderRequest']
+                for bidder_request in bidder_request_list:
+                    if bidder_request['bidderId'] == session['user_id']:
+                        user_bid.append(bid)
+
+        self.user_bids = user_bid
 
 
 student = StudentModel()

@@ -2,16 +2,20 @@ from flask import render_template, url_for, flash, redirect, request, Blueprint
 from decouple import config
 import requests
 import time
+from datetime import datetime
 from online_matching_system.users.utils import check_login, login_required, check_user_model, get_user_role
 from online_matching_system.bids.utils import filter_ongoing_bids
+from online_matching_system.contract.utils import check_expired
 from online_matching_system.models.user_model import student, tutor
 from online_matching_system.models.bid_model import open_bids, close_bids
+from online_matching_system.models.contract_model import contract
 
 api_key = config('FIT3077_API')
 main = Blueprint('main', __name__)
 
 root_url = 'https://fit3077.com/api/v2'
 bid_url = root_url + "/bid"
+contract_url = root_url + "/contract"
 
 @main.route('/', methods=['GET'])
 @login_required
@@ -57,8 +61,14 @@ def index():
                     end_time_converted = None
 
                 open_bid.append({'id': bid['id'], 'type':bid['type'].lower(), 'initiator': bid['initiator'], 'subject':bid['subject'], 'dateCreated': start_time_converted, 'dateClosedDown': end_time_converted, 'additionalInfo':bid['additionalInfo'] })
+
+        all_contracts = contract.get_contract_list()
+        check_expired(all_contracts)
+
     else:
         flash("Please login first", "warning")
         return redirect("/login")
 
-    return render_template('index.html', open_bid=open_bid, user_info=user_info_list, preferred_time_list=preferred_time_list, hours_per_lesson_offered=hours_per_lesson_offered, preferred_day_list=preferred_day_list, rate_choice_offered=rate_choice_offered)
+    return render_template('index.html', open_bid=open_bid, user_info=user_info_list,
+                           preferred_time_list=preferred_time_list, hours_per_lesson_offered=hours_per_lesson_offered,
+                           preferred_day_list=preferred_day_list, rate_choice_offered=rate_choice_offered)

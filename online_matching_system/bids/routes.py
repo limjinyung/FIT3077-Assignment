@@ -24,6 +24,12 @@ def bid_index():
     Function to obtain ongoing and closed down bids to be displayed on the UI
     @return: a flask function to execute bid.html
     """
+    response = requests.get(
+        url=bid_url,
+        headers={'Authorization': api_key, 'fields': 'messages'},
+    )
+
+    print(response.json())
 
     user_subjects = user_subject('name')
     preferred_time_list = ['08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30']
@@ -37,7 +43,10 @@ def bid_index():
     user_role = get_user_role()
     info = user_role.user_details
 
-    return render_template('bid.html', ongoing_bids=ongoing_bids, closed_down_bids=closed_down_bids, user_info=info,user_subjects=user_subjects, preferred_time_list=preferred_time_list, preferred_hours_per_lesson=preferred_hours_per_lesson, preferred_day_list=preferred_day_list, preferred_rate_choice=preferred_rate_choice, bid_type=bid_type)
+    return render_template('bid.html', ongoing_bids=ongoing_bids, closed_down_bids=closed_down_bids, user_info=info,
+                           user_subjects=user_subjects, preferred_time_list=preferred_time_list,
+                           preferred_hours_per_lesson=preferred_hours_per_lesson, preferred_day_list=preferred_day_list,
+                           preferred_rate_choice=preferred_rate_choice, bid_type=bid_type)
 
 
 @bids.route('/bid_details/<bid_id>', methods=["GET"])

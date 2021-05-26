@@ -1,9 +1,10 @@
+from flask import flash
 from datetime import datetime, timedelta
-from decouple import config
+#from decouple import config
 import requests
 from online_matching_system.models.bid_model import search_bids
 
-api_key = config('FIT3077_API')
+api_key = 't9zQjWjQpmf7h7qGQFNfQbrQ7tfjzn'
 
 root_url = 'https://fit3077.com/api/v2'
 bid_url = root_url + "/bid"
@@ -102,7 +103,9 @@ def generate_contract(bid_id):
             "signInfo":{
                 "firstPartySignedDate": None,
                 "secondPartySignedDate": None,
-            }
+            },
+            "expired": False,
+            "duration": None
         }
     }
 
@@ -113,3 +116,34 @@ def generate_contract(bid_id):
     ).json()
 
     return post_contract
+
+
+def check_expired(all_contracts):
+    print(all_contracts)
+    for contracts in all_contracts:
+        if contracts['dateSigned'] is not None and contracts['terminationDate'] is None:
+            expiry_date = datetime.strptime(contracts['expiryDate'][:19], "%Y-%m-%dT%H:%M:%S")
+            current_time = datetime.now()
+            difference = expiry_date - current_time
+            days = divmod(difference.days, 86400)
+            # check if the time remaining is one month left
+            print(days)
+            if (days[1] <= 31) and (days[1] > 0):
+                flash("Contract for subject " + contracts['subject']['name'] + " with "
+                      + contracts['secondParty']['familyName'] + " " + contracts['secondParty']['givenName']
+                      + " has less than 1 month remaining!", "warning")
+            if days[0] < 0:
+                contracts['additionalInfo']['expired'] = True
+                update_contract_url = contract_url + "/{}".format(contracts['id'])
+                print(update_contract_url)
+                updated_info = {"additionalInfo": contracts['additionalInfo']}
+                print(updated_info)
+                update_contract = requests.patch(
+                    url=update_contract_url,
+                    headers={'Authorization': api_key},
+                    json=updated_info
+                )
+                print(update_contract.status_code)
+                flash("Contract for subject " + contracts['subject']['name'] + " with "
+                      + contracts['secondParty']['familyName'] + " " + contracts['secondParty']['givenName']
+                      + " has expired", "warning")

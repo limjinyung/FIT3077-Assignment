@@ -1,4 +1,4 @@
-from decouple import config
+#from decouple import config
 import requests
 from datetime import datetime
 from online_matching_system.contract.utils import generate_contract
@@ -6,7 +6,7 @@ from online_matching_system.users.utils import users_url, get_user_role
 from online_matching_system.models.user_model import student, tutor
 from online_matching_system.models.bid_model import open_bids, close_bids
 
-api_key = config('FIT3077_API')
+api_key = 't9zQjWjQpmf7h7qGQFNfQbrQ7tfjzn'
 
 root_url = 'https://fit3077.com/api/v2'
 bid_url = root_url + "/bid"

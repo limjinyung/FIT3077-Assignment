@@ -58,6 +58,21 @@
                       <form action="{{ url_for('contracts.sign_contract', contract_id=contract_details.id) }}" method="POST">
                         {{ csrf_token }}
                         <div class="form-check">
+                            {% if contract_details.additionalInfo.duration==None %}
+                                <div class="mb-3">
+                                    <label class="form-label">Contract Duration:</label>
+                                    <select class="form-select" name="contract_duration_final">
+                                        {% for months in duration_choices %}
+                                        <option value="{{months}}">{{months}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    Default: 6 Months
+                                </div>
+                            {% endif %}
+                            {% if contract_details.additionalInfo.duration!=None %}
+                                <p class="text">
+                                Duration: {{contract_details.additionalInfo.duration}}</p>
+                            {% endif %}
                           <input class="form-check-input" type="checkbox" value="sign" id="flexCheckDefault">
                           <label class="form-check-label" for="flexCheckDefault">
                             Agree and Sign
@@ -66,9 +81,19 @@
                         <br>
                         <input type="submit" class="btn btn-outline-primary btn-sm" value="Submit"></input>
                       </form>
-                      {% else %}
-                      <a href="#" class="list-group-item list-group-item-action list-group-item-success">Contract Signed</a>
-                      {% endif %}
+                        {% endif %}
+                      {% if signed %}
+                        <p class="text">
+                                Duration: {{contract_details.additionalInfo.duration}}</p>
+                        <p class="text">
+                                Expire: {{contract_details.additionalInfo.expired}}</p>
+                        {% if contract_details.additionalInfo.expired==True %}
+                            <a href="#" class="list-group-item list-group-item-action list-group-item-danger">Contract Expired</a>
+                        {% endif %}
+                        {% if contract_details.additionalInfo.expired==False %}
+                            <a href="#" class="list-group-item list-group-item-action list-group-item-success">Contract Signed</a>
+                        {% endif %}
+                        {% endif %}
                     </div>
                 </div>
             </div>

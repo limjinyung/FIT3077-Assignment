@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 from decouple import config
 import requests
 from online_matching_system.models.bid_model import search_bids
+from online_matching_system.models.contract_model import contract as contract_obj
+from online_matching_system.users.utils import get_user_role
 
 api_key = config('FIT3077_API')
 
@@ -85,7 +87,7 @@ def generate_contract(bid_id):
         "secondPartyId": bidder_id,
         "subjectId": subject_id,
         "dateCreated": str(datetime.now()),
-        "expiryDate": str(datetime.now() + timedelta(seconds=120)),
+        "expiryDate": str(datetime.now() + timedelta(seconds=86400)),
         "paymentInfo": {},
         "lessonInfo": {
             "bidderId":bidder_id,
@@ -113,3 +115,24 @@ def generate_contract(bid_id):
     ).json()
 
     return post_contract
+
+def check_contract_expire_soon():
+
+    number_of_contract_expired = 0
+
+    # get user contract
+    user_role = get_user_role()
+    contract_list = user_role.user_contracts
+
+    # loop through the contract and check if any contract is going to expire
+    for contract in contract_list:
+        expiry_date = contract['expiryDate'] 
+        expiry_date_obj = datetime.strptime(contract['expiryDate'], "%Y-%m-%dT%H:%M:%S.%fZ")
+        if (expiry_date_obj - datetime.now()) < timedelta(seconds=2592000):
+            number_of_contract_expired += 1
+
+    # if there's no contract going to expire, return False, else True, with the number of contract going to expire
+    if number_of_contract_expired >= 1:
+        return True, number_of_contract_expired
+    else:
+        return False, number_of_contract_expired

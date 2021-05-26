@@ -51,6 +51,7 @@ def create_user_model():
         tutor.get_user_bids()
         tutor.get_user_competencies()
         tutor.get_user_qualifications()
+        tutor.get_user_contract()
         tutor.initialized = True
     else:
         raise Exception("user is not student and tutor. What is the user role?")

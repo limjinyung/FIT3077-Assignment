@@ -5,6 +5,7 @@ from flask import session
 from decouple import config
 import requests
 from online_matching_system.forms import LoginForm
+from online_matching_system.contract.utils import check_contract_expire_soon
 
 users = Blueprint('users', __name__)
 
@@ -36,7 +37,14 @@ def login():
 
             # redirect to another and save the JWT in cookies
             session['jwt'] = jwt
-            return redirect('/')
+
+            # check if user has any contract going to expire
+            check_result, num_contract_expire_soon = check_contract_expire_soon()
+            if check_result:
+                flash("{} contract is going to expire soon.".format(num_contract_expire_soon), "warning")
+                return redirect('/')
+            else:
+                return redirect('/')
 
         else:
             # flash error message

@@ -17,7 +17,7 @@ class UserModel():
         self.user_competencies = None
         self.user_qualifications = None
         self.user_bids = None
-        self.user_contracts = None
+        self.user_contracts = []
         self.is_student = None
         self.is_tutor = None
 
@@ -96,6 +96,24 @@ class UserModel():
 
         self.isStudent = user_info['isStudent']
         self.isTutor = user_info['isTutor']
+
+    def get_user_contract(self):
+        """
+        get user's contract from API
+        """
+        user_contract_list = []
+        contract_url = root_url + "/contract"
+
+        user_contracts = requests.get(
+            url=contract_url,
+            headers={ 'Authorization': api_key },
+        ).json()
+
+        for contract in user_contracts:
+            if contract['firstParty']['id'] == session['user_id'] or contract['secondParty']['id'] == session['user_id']:
+                user_contract_list.append(contract)
+        
+        self.user_contracts = user_contract_list
 
     @abstractmethod
     def get_user_bids(self):

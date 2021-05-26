@@ -85,7 +85,7 @@ def generate_contract(bid_id):
         "secondPartyId": bidder_id,
         "subjectId": subject_id,
         "dateCreated": str(datetime.now()),
-        "expiryDate": str(datetime.now() + timedelta(days=365)),
+        "expiryDate": str(datetime.now() + timedelta(seconds=120)),
         "paymentInfo": {},
         "lessonInfo": {
             "bidderId":bidder_id,
@@ -103,7 +103,6 @@ def generate_contract(bid_id):
                 "firstPartySignedDate": None,
                 "secondPartySignedDate": None,
             },
-            "expired": False
         }
     }
 

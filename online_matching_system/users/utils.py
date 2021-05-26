@@ -42,6 +42,7 @@ def create_user_model():
         student.get_user_competencies()
         student.get_user_qualifications()
         student.get_contract_number()
+        student.get_user_contract()
         student.initialized = True
     elif user_info['isTutor']:
         session['user_role'] = 'tutor'

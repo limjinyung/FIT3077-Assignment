@@ -1,15 +1,15 @@
 import requests
 # from online_matching_system.routes import *
-#from flask_login import current_user
+from flask_login import current_user
 from flask import session, flash, redirect, render_template, url_for, request
 from functools import wraps
-#from decouple import config
+from decouple import config
 from online_matching_system.models.user_model import student, tutor
 
 root_url = 'https://fit3077.com/api/v2'
 users_url = root_url + "/user"
 users_login_url = users_url + "/login"
-api_key = 't9zQjWjQpmf7h7qGQFNfQbrQ7tfjzn'
+api_key = config('FIT3077_API')
 
 
 def check_login():

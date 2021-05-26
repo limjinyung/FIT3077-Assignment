@@ -1,5 +1,5 @@
 from flask import render_template, url_for, flash, redirect, request, Blueprint, session, jsonify
-#from decouple import config
+from decouple import config
 from online_matching_system.users.utils import user_subject
 from datetime import datetime
 import requests
@@ -10,7 +10,7 @@ from online_matching_system.models.bid_model import open_bids, close_bids
 from .utils import get_bid_details, check_valid_offer, check_contract, search_bids, get_bid_type, all_bids
 
 bids = Blueprint('bids', __name__)
-api_key = 't9zQjWjQpmf7h7qGQFNfQbrQ7tfjzn'
+api_key = config('FIT3077_API')
 
 root_url = 'https://fit3077.com/api/v2'
 bid_url = root_url + "/bid"

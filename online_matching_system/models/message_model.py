@@ -2,9 +2,9 @@ from abc import ABCMeta
 from flask import session
 import requests
 from datetime import datetime
-#from decouple import config
+from decouple import config
 
-api_key = 't9zQjWjQpmf7h7qGQFNfQbrQ7tfjzn'
+api_key = config('FIT3077_API')
 root_url = 'https://fit3077.com/api/v2/'
 
 class MessageModel():

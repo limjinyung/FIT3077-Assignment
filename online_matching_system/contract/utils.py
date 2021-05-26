@@ -1,10 +1,10 @@
 from flask import flash
 from datetime import datetime, timedelta
-#from decouple import config
+from decouple import config
 import requests
 from online_matching_system.models.bid_model import search_bids
 
-api_key = 't9zQjWjQpmf7h7qGQFNfQbrQ7tfjzn'
+api_key = config('FIT3077_API')
 
 root_url = 'https://fit3077.com/api/v2'
 bid_url = root_url + "/bid"

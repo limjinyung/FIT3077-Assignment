@@ -1,5 +1,5 @@
 from flask import render_template, url_for, flash, redirect, request, Blueprint, session
-#from decouple import config
+from decouple import config
 from datetime import datetime, timedelta
 import requests
 from .utils import get_contract_details
@@ -8,7 +8,7 @@ from online_matching_system.users.utils import check_user_model
 from online_matching_system.models.contract_model import contract as contract_obj
 
 contracts = Blueprint('contracts', __name__)
-api_key = 't9zQjWjQpmf7h7qGQFNfQbrQ7tfjzn'
+api_key = config('FIT3077_API')
 
 root_url = 'https://fit3077.com/api/v2'
 contract_url = root_url + "/contract"

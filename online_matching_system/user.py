@@ -1,13 +1,13 @@
 import requests
 # from online_matching_system.routes import *
-#from flask_login import current_user
+from flask_login import current_user
 from flask import session
-#from decouple import config
+from decouple import config
 
 root_url = 'https://fit3077.com/api/v2'
 users_url = root_url + "/user"
 users_login_url = users_url + "/login"
-api_key = 't9zQjWjQpmf7h7qGQFNfQbrQ7tfjzn'
+api_key = config('FIT3077_API')
 
 class UserFunction():
     # user_id = ''

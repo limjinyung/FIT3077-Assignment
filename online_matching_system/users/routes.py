@@ -1,8 +1,8 @@
 from flask import render_template, url_for, flash, redirect, request, Blueprint, make_response
 from .utils import login_user, logout_manual, user_subject, user_profile_details, check_login, login_required, check_user_model
-#from flask_login import current_user
+from flask_login import current_user
 from flask import session
-#from decouple import config
+from decouple import config
 import requests
 from online_matching_system.forms import LoginForm
 

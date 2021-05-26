@@ -159,6 +159,7 @@ def reuse_contract():
     # get the contract that student choose to reuse
     chosen_contract = contract_obj.get_contract_details(chosen_contract)
 
+    # TODO: make this into a reusable function
     # if the tutor is the new tutor, check the tutor competency
     if chosen_tutor == 'new':
         tutor_id = request.form.get('new_tutor_id')
@@ -196,14 +197,14 @@ def reuse_contract():
 
     # create the json to POST data
     contract_json = {
-        "firstPartyId": chosen_contract['firstParty']['id'],
-        "secondPartyId": chosen_contract['secondParty']['id'],
+        "firstPartyId": session['user_id'],
+        "secondPartyId": tutor_id,
         "subjectId": chosen_contract['subject']['id'],
         "dateCreated": str(datetime.now()),
         "expiryDate": str(datetime.now() + timedelta(seconds=120)),
         "paymentInfo": {},
         "lessonInfo": {
-            "bidderId":chosen_contract['lessonInfo']['bidderId'],
+            "bidderId":tutor_id,
             "numberOfLesson":chosen_contract['lessonInfo']['numberOfLesson'],
             "hoursPerLesson":chosen_contract['lessonInfo']['hoursPerLesson'],
             "lessonTime":chosen_contract['lessonInfo']['lessonTime'],
@@ -227,5 +228,105 @@ def reuse_contract():
         headers={ 'Authorization': api_key },
         json = contract_json
     ).json()
+
+    # update the contract model after POST
+    contract_obj.update_contract_list()
+
+    return redirect('/contract')
+
+
+@contracts.route('/renew_contract', methods=["POST"])
+@login_required
+def renew_contract():
+
+    # declare variable
+    student_subject_level = ''
+    tutor_subject_level = ''
+
+    # get data from request
+    chosen_tutor = request.form.get('new_tutor')
+    subject_id = request.form.get('subject_id')
+    contract_id = request.form.get('contract_id')
+    number_of_lesson = request.form.get('lesson_needed')
+    hours_per_lesson = request.form.get('preferred_hours_per_lesson')
+    preferred_time = request.form.get('preferred_time')
+    preferred_day = request.form.get('preferred_day')
+    session_per_week = request.form.get('preferred_session_per_week')
+    rate_choice = request.form.get('preferred_rate_choice')
+    rate_request = request.form.get('preferred_rate')
+
+    # TODO: make this into a reusable function
+    # if the tutor is the new tutor, check the tutor competency
+    if chosen_tutor == 'new':
+        tutor_id = request.form.get('new_tutor_id')
+
+        # get the competency list
+        competencies_list = requests.get(
+            url=root_url+'/competency',
+            headers={ 'Authorization': api_key },
+        ).json()
+
+        # loop through the competency list and find student, tutor subject level
+        for competency in competencies_list:
+            if competency['subject']['id'] == subject_id and competency['owner']['id'] == session['user_id']:
+                student_subject_level = competency['level']
+            if competency['subject']['id'] == subject_id and competency['owner']['id'] == tutor_id:
+                tutor_subject_level = competency['level']
+        
+        # check the competency level is valid
+        if student_subject_level and tutor_subject_level:
+            if (tutor_subject_level - student_subject_level) >= 2:
+                pass
+            else:
+                flash('This tutor has not enough competency level in this subject', 'warning')
+                return redirect('/contract_details/{}'.format(contract_id))
+        else:
+            # if can't find the tutor ID, return and flash error message
+            if not tutor_subject_level:
+                flash("Can't find tutor with this ID")
+                return redirect('/contract_details/{}'.format(contract_id))
+            else:
+                raise Exception("Can't find either student level or tutor level in reuse_contract function.")
+    else:
+        tutor_id = request.form.get('current_tutor_id')
+
+    # create the json to POST data
+    contract_json = {
+        "firstPartyId": session['user_id'],
+        "secondPartyId": tutor_id,
+        "subjectId": subject_id,
+        "dateCreated": str(datetime.now()),
+        "expiryDate": str(datetime.now() + timedelta(seconds=120)),
+        "paymentInfo": {},
+        "lessonInfo": {
+            "bidderId":tutor_id,
+            "numberOfLesson":number_of_lesson,
+            "hoursPerLesson":hours_per_lesson,
+            "lessonTime":preferred_time,
+            "lessonDay":preferred_day,
+            "lessonPerWeek":session_per_week,
+            "freeLesson": "off",
+            "lessonRateChoice":rate_choice,
+            "lessonRate":rate_request,
+        },
+        "additionalInfo": {
+            "signInfo":{
+                "firstPartySignedDate": None,
+                "secondPartySignedDate": None,
+            },
+        }
+    }
+
+    # POST data
+    post_contract = requests.post(
+        url = contract_url,
+        headers={ 'Authorization': api_key },
+        json = contract_json
+    ).json()
+
+    print(post_contract)
+
+    # update the contract model after POST
+    contract_obj.update_contract_list()
 
     return redirect('/contract')

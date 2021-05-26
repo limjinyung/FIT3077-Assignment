@@ -141,7 +141,10 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form action="#" method="POST">
+        <form action="{{ url_for('contracts.renew_contract') }}" method="POST">
+          <input type="hidden" name="current_tutor_id" value="{{contract_details.secondParty.id}}">
+          <input type="hidden" name="subject_id" value="{{contract_details.subject.id}}">
+          <input type="hidden" name="contract_id" value="{{contract_details.id}}">
             {{ csrf_token }}
             <div class="mb-3">
                 <label class="form-label">Lesson Needed:</label>
@@ -188,16 +191,12 @@
                 <input type="number" class="form-control" name="preferred_rate">
             </div>
             <div class="mb-3">
-                <label class="form-label">Preferred Rate:</label>
-                <input type="number" class="form-control" name="preferred_rate">
-            </div>
-            <div class="mb-3">
               <label class="form-label">Renew with new tutor</label>
               <div class="input-group mb-3">
                 <div class="input-group-text">
-                  <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
+                  <input class="form-check-input mt-0" type="checkbox" name="new_tutor" value="new" aria-label="Checkbox for following text input">
                 </div>
-                <input type="text" class="form-control" aria-label="Text input with checkbox">
+                <input type="text" name="new_tutor_id" class="form-control" aria-label="Text input with checkbox">
               </div>
               <div class="form-text">Tick and enter the new tutor ID if you want to sign with different tutor.</div>
             </div>

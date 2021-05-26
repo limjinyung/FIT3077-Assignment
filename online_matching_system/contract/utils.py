@@ -102,7 +102,8 @@ def generate_contract(bid_id):
             "signInfo":{
                 "firstPartySignedDate": None,
                 "secondPartySignedDate": None,
-            }
+            },
+            "expired": False
         }
     }
 

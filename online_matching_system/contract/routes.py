@@ -71,12 +71,6 @@ def sign_contract(contract_id):
 
     contract_details_url = contract_url + "/{}".format(contract_id)
 
-    # get the specific contract
-    # contract_details = requests.get(
-    #     url = contract_details_url,
-    #     headers={ 'Authorization': api_key },
-    # ).json()
-
     contract_details = contract_obj.get_contract_details(contract_id)
 
     try:
@@ -97,7 +91,36 @@ def sign_contract(contract_id):
             json= return_value
         ).json()
 
+        # update the contract model after PATCH
+        contract_obj.update_contract_list()
+
+        # check if both parties signed the contract
+        check_both_parties_signed(contract_id)
+
     except Exception as e:
         print('Exception caught in sign_contract: {}'.format(e))
 
     return redirect('/contract')
+
+
+def check_both_parties_signed(contract_id):
+
+    contract_details = contract_obj.get_contract_details(contract_id)
+
+    if (contract_details['additionalInfo']['signInfo']['firstPartySignedDate'] and contract_details['additionalInfo']['signInfo']['secondPartySignedDate']) and not contract_details['dateSigned']:
+        
+        sign_contract = requests.post(
+            url = root_url + "/contract/{}/sign".format(contract_id),
+            headers={ 'Authorization': api_key },
+            data={"dateSigned":datetime.now()}
+        ).json()
+
+        # if sign_contract.status_code == 200:
+        #     print('contract signed complete')
+        # else:
+        #     raise Exception("There's something wrong signing the contract")
+        print(sign_contract)
+    elif (contract_details['additionalInfo']['signInfo']['firstPartySignedDate'] and contract_details['additionalInfo']['signInfo']['secondPartySignedDate']) and contract_details['dateSigned']:
+        raise Exception('Contract signed already')
+    else:
+        pass

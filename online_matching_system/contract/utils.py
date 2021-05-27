@@ -82,12 +82,13 @@ def generate_contract(bid_id):
                 lesson_rate = bids['additionalInfo']['preferredRate']
                 break
 
+    # default contract will be set to 6 months
     contract_json = {
         "firstPartyId": requestor_id,
         "secondPartyId": bidder_id,
         "subjectId": subject_id,
         "dateCreated": str(datetime.now()),
-        "expiryDate": str(datetime.now() + timedelta(seconds=86400)),
+        "expiryDate": str(datetime.now() + timedelta(seconds=15780000)),
         "paymentInfo": {},
         "lessonInfo": {
             "bidderId":bidder_id,
@@ -105,6 +106,7 @@ def generate_contract(bid_id):
                 "firstPartySignedDate": None,
                 "secondPartySignedDate": None,
             },
+            'duration': None,
         }
     }
 
@@ -118,21 +120,27 @@ def generate_contract(bid_id):
 
 def check_contract_expire_soon():
 
-    number_of_contract_expired = 0
+    contract_expire_soon = []
+    contract_expired = []
 
     # get user contract
     user_role = get_user_role()
     contract_list = user_role.user_contracts
 
-    # loop through the contract and check if any contract is going to expire
     for contract in contract_list:
-        expiry_date = contract['expiryDate'] 
-        expiry_date_obj = datetime.strptime(contract['expiryDate'], "%Y-%m-%dT%H:%M:%S.%fZ")
-        if (expiry_date_obj - datetime.now()) < timedelta(seconds=2592000):
-            number_of_contract_expired += 1
+        if contract['dateSigned'] and not contract['terminationDate']:
+            expiry_date = datetime.strptime(contract['expiryDate'][:19], "%Y-%m-%dT%H:%M:%S")
+            current_time = datetime.now()
+            difference = expiry_date - current_time
+            days = divmod(difference.days, 86400)
+            print(days)
 
-    # if there's no contract going to expire, return False, else True, with the number of contract going to expire
-    if number_of_contract_expired >= 1:
-        return True, number_of_contract_expired
+            if (days[1] <= 31) and (days[1] > 0):
+                contract_expire_soon.append(contract)
+            if days[0] < 0:
+                contract_expired.append(contract)
+                
+    if len(contract_expire_soon) >= 1 or len(contract_expired) >= 1:
+        return True, contract_expire_soon, contract_expired
     else:
-        return False, number_of_contract_expired
+        return False, contract_expire_soon, contract_expired

@@ -71,6 +71,12 @@ def contract_details(contract_id):
     except Exception as e:
         print('Exception caught in contract_details: {}'.format(e))
 
+    # check if the duration is set
+    if contract_details['additionalInfo']['duration']:
+        duration_choices = []
+    else:
+        duration_choices = ['10 seconds', '1 minute', '3 months', '6 months', '12 months', '24 months']
+
     # get the five latest contract
     user_role = get_user_role()
     contract_reference_list = user_role.user_contracts[:4]
@@ -78,7 +84,7 @@ def contract_details(contract_id):
     # get user_info
     user_info = user_role.user_details
 
-    return render_template('contract_details.html', contract_details=contract_details, signed=signed, contract_expired=contract_expired, user_info=user_info, contract_reference_list=contract_reference_list, preferred_time_list=preferred_time_list, preferred_day_list=preferred_day_list, preferred_rate_choice=preferred_rate_choice, preferred_hours_per_lesson=preferred_hours_per_lesson)
+    return render_template('contract_details.html', contract_details=contract_details, duration_choices=duration_choices, signed=signed, contract_expired=contract_expired, user_info=user_info, contract_reference_list=contract_reference_list, preferred_time_list=preferred_time_list, preferred_day_list=preferred_day_list, preferred_rate_choice=preferred_rate_choice, preferred_hours_per_lesson=preferred_hours_per_lesson)
 
 
 @contracts.route('/sign_contract/<contract_id>', methods=["POST"])
@@ -86,13 +92,45 @@ def contract_details(contract_id):
 @check_user_model
 def sign_contract(contract_id):
 
+    two_minute = 120
+    three_months = 7889238
+    twelve_months = 31556952
+    twenty_four_months = 63113904
+
     contract_details_url = contract_url + "/{}".format(contract_id)
 
+    # get the contract details from contract model
     contract_details = contract_obj.get_contract_details(contract_id)
+
+    contract_duration_choice = request.form.get('contract_duration_choice')
+    contract_signed = request.form.get('sign')
+
+    if contract_signed ==  None:
+        flash('Please tick on the agree and sign checkbox and sign', 'danger')
+        return redirect('/contract_details/{}'.format(contract_id))
+
+    if contract_duration_choice:
+        if contract_duration_choice == '6':
+            pass
+        else:
+            contract_details['additionalInfo']['duration'] = contract_duration_choice
+            contract_date_created = datetime.strptime(contract_details['dateCreated'], "%Y-%m-%dT%H:%M:%S.%fZ")
+
+            if contract_duration_choice == '3':
+                contract_date_expiry = contract_date_created + timedelta(seconds=three_months)
+            elif contract_duration_choice == '12':
+                contract_date_expiry = contract_date_created + timedelta(seconds=twelve_months)
+            elif contract_duration_choice == '24':
+                contract_date_expiry = contract_date_created + timedelta(seconds=twelve_months)
+            elif contract_duration_choice == '2min':
+                contract_date_expiry = contract_date_created + timedelta(seconds=two_minute)
+            else:
+                raise Exception('Month input not acceptable in sign_contract function.')
+
+            contract_date_expiry_string = contract_date_expiry.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
     try:
         if session['user_id'] == contract_details['firstParty']['id']:
-
             contract_details['additionalInfo']['signInfo']['firstPartySignedDate'] = str(datetime.now())
         elif session['user_id'] == contract_details['secondParty']['id']:
             contract_details['additionalInfo']['signInfo']['secondPartySignedDate'] = str(datetime.now())
@@ -100,7 +138,10 @@ def sign_contract(contract_id):
             flash('user ID not match with any party ID. Please contact admin for help.', 'danger')
             return redirect('/contract')
 
-        return_value = {"additionalInfo": contract_details['additionalInfo']}
+        if contract_duration_choice:
+            return_value = {"expiryDate":contract_date_expiry_string, "additionalInfo": contract_details['additionalInfo']}
+        else:
+            return_value = {"additionalInfo": contract_details['additionalInfo']}
 
         contract_update = requests.patch(
             url = contract_details_url,
@@ -117,7 +158,7 @@ def sign_contract(contract_id):
     except Exception as e:
         print('Exception caught in sign_contract: {}'.format(e))
 
-    return redirect('/contract')
+    return redirect('/contract_details/{}'.format(contract_id))
 
 
 def check_both_parties_signed(contract_id):

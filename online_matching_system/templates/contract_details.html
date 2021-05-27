@@ -69,14 +69,42 @@
                         <br>
                         <form action="{{ url_for('contracts.sign_contract', contract_id=contract_details.id) }}" method="POST">
                           {{ csrf_token }}
-                          <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="sign" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">
-                              Agree and Sign
-                            </label>
+                          {% if duration_choices %}
+                          <div class="mb-3">
+                            <label class="form-label">Contract Duration(months):</label>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio" name="contract_duration_choice" id="inlineRadio1" value="2min">
+                              <label class="form-check-label" for="inlineRadio1">2min</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio" name="contract_duration_choice" id="inlineRadio1" value="3">
+                              <label class="form-check-label" for="inlineRadio1">3</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio" name="contract_duration_choice" id="inlineRadio2" value="6" checked>
+                              <label class="form-check-label" for="inlineRadio2">6</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio" name="contract_duration_choice" id="inlineRadio2" value="12">
+                              <label class="form-check-label" for="inlineRadio2">12</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio" name="contract_duration_choice" id="inlineRadio2" value="24">
+                              <label class="form-check-label" for="inlineRadio2">24</label>
+                            </div>
                           </div>
-                          <br>
-                          <input type="submit" class="btn btn-outline-primary btn-sm" value="Submit"></input>
+                          {% else %}
+                          <input type="hidden" name="contract_duration_choice" value="">
+                          {% endif %}
+                          <div class="mb-3">
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" name="sign" value="signed" id="flexCheckDefault">
+                              <label class="form-check-label" for="flexCheckDefault">
+                                Agree and Sign
+                              </label>
+                            </div>
+                          </div>
+                          <input type="submit" class="btn btn-outline-primary btn-sm" value="Sign"></input>
                         </form>
                         {% else %}
                         <a href="#" class="list-group-item list-group-item-action list-group-item-success">Contract Signed</a>

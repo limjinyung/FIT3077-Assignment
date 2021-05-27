@@ -39,9 +39,13 @@ def login():
             session['jwt'] = jwt
 
             # check if user has any contract going to expire
-            check_result, num_contract_expire_soon = check_contract_expire_soon()
+            check_result, contract_expire_soon, contract_expired = check_contract_expire_soon()
+            print(check_result, contract_expire_soon, contract_expired)
             if check_result:
-                flash("{} contract is going to expire soon.".format(num_contract_expire_soon), "warning")
+                for message in contract_expire_soon:
+                    flash("Contract for subject {} with {} is going to expire soon.".format(message['subject']['name'], message['secondParty']['userName']), "warning")
+                for message in contract_expired:
+                    flash("Contract for subject {} with {} expired.".format(message['subject']['name'], message['secondParty']['userName']), "danger")
                 return redirect('/')
             else:
                 return redirect('/')

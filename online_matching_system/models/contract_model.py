@@ -46,6 +46,8 @@ class ContractModel():
             [contract class object]: the specific contract that is required
         """
 
+        self.update_contract_list()
+
         for contract in self.contract_list:
             if contract['id'] == contract_id:
                 return contract

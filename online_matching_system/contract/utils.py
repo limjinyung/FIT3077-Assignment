@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 from decouple import config
 import requests
 from online_matching_system.models.bid_model import search_bids
+from online_matching_system.models.contract_model import contract as contract_obj
+from online_matching_system.users.utils import get_user_role
 
 api_key = config('FIT3077_API')
 
@@ -80,12 +82,13 @@ def generate_contract(bid_id):
                 lesson_rate = bids['additionalInfo']['preferredRate']
                 break
 
+    # default contract will be set to 6 months
     contract_json = {
         "firstPartyId": requestor_id,
         "secondPartyId": bidder_id,
         "subjectId": subject_id,
         "dateCreated": str(datetime.now()),
-        "expiryDate": str(datetime.now() + timedelta(days=365)),
+        "expiryDate": str(datetime.now() + timedelta(seconds=15780000)),
         "paymentInfo": {},
         "lessonInfo": {
             "bidderId":bidder_id,
@@ -102,7 +105,8 @@ def generate_contract(bid_id):
             "signInfo":{
                 "firstPartySignedDate": None,
                 "secondPartySignedDate": None,
-            }
+            },
+            'duration': None,
         }
     }
 
@@ -113,3 +117,30 @@ def generate_contract(bid_id):
     ).json()
 
     return post_contract
+
+def check_contract_expire_soon():
+
+    contract_expire_soon = []
+    contract_expired = []
+
+    # get user contract
+    user_role = get_user_role()
+    contract_list = user_role.user_contracts
+
+    for contract in contract_list:
+        if contract['dateSigned'] and not contract['terminationDate']:
+            expiry_date = datetime.strptime(contract['expiryDate'][:19], "%Y-%m-%dT%H:%M:%S")
+            current_time = datetime.now()
+            difference = expiry_date - current_time
+            days = divmod(difference.days, 86400)
+            print(days)
+
+            if (days[1] <= 31) and (days[1] > 0):
+                contract_expire_soon.append(contract)
+            if days[0] < 0:
+                contract_expired.append(contract)
+                
+    if len(contract_expire_soon) >= 1 or len(contract_expired) >= 1:
+        return True, contract_expire_soon, contract_expired
+    else:
+        return False, contract_expire_soon, contract_expired

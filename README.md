@@ -9,6 +9,5 @@ To run the program:
 The deliverables can be found in *online_matching_system/deliverables/Assignment 3*
 
 Student:
- 
 Lim Jin Yung 29036186
 Chew Shen Min 29640938

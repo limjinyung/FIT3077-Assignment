@@ -227,7 +227,7 @@ def user_profile_details():
     return user_profile_info
 
 
-def user_index_bids():\
+def user_index_bids():
     """
     get user's bid, and differentiate it to ongoing bid and closed down bid by checking on the dateClosedDown field
 

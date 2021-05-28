@@ -260,6 +260,7 @@ def reuse_contract():
                 "firstPartySignedDate": None,
                 "secondPartySignedDate": None,
             },
+            "duration": None,
         }
     }
 
@@ -355,6 +356,7 @@ def renew_contract():
                 "firstPartySignedDate": None,
                 "secondPartySignedDate": None,
             },
+            "duration":None
         }
     }
 

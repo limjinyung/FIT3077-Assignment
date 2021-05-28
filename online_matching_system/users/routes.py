@@ -5,7 +5,8 @@ from flask import session
 from decouple import config
 import requests
 from online_matching_system.forms import LoginForm
-from online_matching_system.contract.utils import check_contract_expire_soon
+# from online_matching_system.contract.utils import check_contract_expire_soon
+from online_matching_system.users.utils import check_contract_expire_soon
 
 users = Blueprint('users', __name__)
 
@@ -40,7 +41,7 @@ def login():
 
             # check if user has any contract going to expire
             check_result, contract_expire_soon, contract_expired = check_contract_expire_soon()
-            print(check_result, contract_expire_soon, contract_expired)
+            print(contract_expire_soon, contract_expired)
             if check_result:
                 for message in contract_expire_soon:
                     flash("Contract for subject {} with {} is going to expire soon.".format(message['subject']['name'], message['secondParty']['userName']), "warning")

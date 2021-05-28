@@ -101,6 +101,8 @@ def check_valid_offer(bid_info, bidder_id):
     """
     user_has_competencies = False
     first_bid = True
+    bidder_level = ''
+    initiator_level = ''
 
     # to check if the user has bidded the bid before
     bidder_requests = bid_info['additionalInfo']['bidderRequest']
@@ -110,6 +112,7 @@ def check_valid_offer(bid_info, bidder_id):
             first_bid = False
 
     # to check if the user has the competencies to bid
+    # refactoring techniques: replace temp with query
     user_role = get_user_role()
 
     user_competencies = user_role.user_competencies
@@ -141,7 +144,10 @@ def check_valid_offer(bid_info, bidder_id):
             initiator_level = competency['level']
 
     # check the level
-    enough_level = (bidder_level - initiator_level) >= 2
+    if bidder_level and initiator_level:
+        enough_level = (bidder_level - initiator_level) >= 2
+    else:
+        enough_level = False
 
     return (user_has_competencies and first_bid and enough_level)
 
@@ -197,10 +203,15 @@ def check_contract():
         headers={ 'Authorization': api_key },
     ).json()
 
+    # Refactoring techniques: composing method
     for contract in contracts:
-        if (contract['firstParty'] == session['user_id']) & (datetime.now() < contract['expiryDate']):
+        first_party_contract = contract['firstParty'] == session['user_id']
+        second_party_contract = contract['secondParty'] == session['user_id']
+        contract_not_expired = datetime.now() < contract['expiryDate']
+
+        if (first_party_contract) & (contract_not_expired):
             user_contract += 1
-        elif (contract['secondParty'] == session['user_id']) & (datetime.now() < contract['expiryDate']):
+        elif (second_party_contract) & (contract_not_expired):
             user_contract += 1
 
     return user_contract < 5

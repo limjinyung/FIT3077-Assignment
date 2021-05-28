@@ -5,6 +5,7 @@ from flask import session, flash, redirect, render_template, url_for, request
 from functools import wraps
 from decouple import config
 from online_matching_system.models.user_model import student, tutor
+from datetime import datetime
 
 root_url = 'https://fit3077.com/api/v2'
 users_url = root_url + "/user"
@@ -93,6 +94,16 @@ def check_user_model(f):
 
 
 def login_user(username, password):
+    """
+    login the user by POST request by providing username and password
+
+    Args:
+        username ([string]): [username that user enter when login]
+        password ([string]): [password that user enter when login]
+
+    Returns:
+        [Response]: [response return by the API]
+    """
 
     # get response from API
     response = requests.post(
@@ -157,9 +168,19 @@ def decode_jwt(encoded_jwt):
 
 
 def user_subject(info=None):
+    """
+    to get subject or any other info depends on the input
+
+    Args:
+        info [string]: to indicate what the caller desire, if the caller want subject name, info='name', if no input, the whole JSON will be append into the list. Defaults to None.
+
+    Returns:
+        subject_list [an array of JSON]: an array of subject JSON
+    """
 
     subject_list = []
 
+    # refactoring techniques: replace temp with query
     user_role = get_user_role()
 
     user_competencies = user_role.user_competencies
@@ -188,9 +209,12 @@ def get_user_role():
 
 def user_profile_details():
     """
-    to get user's details and display in profile html
+
+    Returns:
+        user_profile_info: a dictionary that has user details, competencies, qualifications and bids
     """
 
+    # refactoring techniques: replace temp with query
     user_role = get_user_role()
     
     user_details = user_role.user_details
@@ -203,9 +227,17 @@ def user_profile_details():
     return user_profile_info
 
 
-def user_index_bids():
+def user_index_bids():\
+    """
+    get user's bid, and differentiate it to ongoing bid and closed down bid by checking on the dateClosedDown field
+
+    Returns:
+        onging_bid: a list of JSON bid that dateClosedDown is None
+        closed_down_bid: a list of JSON bid that has dateClosedDown field 
+    """
 
     # get user role
+    # refactoring techniques: replace temp with query
     user_role = get_user_role()
     # update bid data from API
     user_role.get_user_bids()
@@ -222,3 +254,48 @@ def user_index_bids():
             ongoing_bid.append(bid)
 
     return ongoing_bid, closed_down_bid
+
+
+def check_contract_expire_soon():
+    """
+    get user's contract from user model and loop through the contract list to check if any contract is expired or expire in a month
+
+    Returns:
+        boolean: True if there are any contract expire soon or expired
+        contract_expire_soon_list: a list of contract JSON that is going to expire in a month
+        contract_expired_list a list of expired contract JSON 
+    """
+
+    contract_expire_soon_list = []
+    contract_expired_list = []
+
+    # get user contract
+    # refactoring techniques: replace temp with query
+    user_role = get_user_role()
+    contract_list = user_role.user_contracts
+
+    for contract in contract_list:
+        if contract['dateSigned'] and not contract['terminationDate']:
+
+            # get expiry date and current date
+            expiry_date = datetime.strptime(contract['expiryDate'][:19], "%Y-%m-%dT%H:%M:%S")
+            current_time = datetime.now()
+            
+            # get the diffenrence between expiry date and current date
+            difference = expiry_date - current_time
+            days = divmod(difference.days, 86400)
+
+            # Refactoring techniques: composing method
+            contract_expire_soon = (days[1] <= 31) and (days[1] >= 0)
+            contract_expired = days[0] < 0
+
+            if contract_expire_soon:
+                contract_expire_soon_list.append(contract)
+            if contract_expired:
+                contract_expired_list.append(contract)
+    
+    # return True if there's elem in any list, else False
+    if len(contract_expire_soon_list) >= 1 or len(contract_expired_list) >= 1:
+        return True, contract_expire_soon_list, contract_expired_list
+    else:
+        return False, contract_expire_soon_list, contract_expired_list

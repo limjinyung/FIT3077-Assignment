@@ -118,29 +118,42 @@ def generate_contract(bid_id):
 
     return post_contract
 
-def check_contract_expire_soon():
+###################################################################
+## Moved to users/utils.py to eliminate code smell
+###################################################################
 
-    contract_expire_soon = []
-    contract_expired = []
+# def check_contract_expire_soon():
 
-    # get user contract
-    user_role = get_user_role()
-    contract_list = user_role.user_contracts
+#     contract_expire_soon_list = []
+#     contract_expired_list = []
 
-    for contract in contract_list:
-        if contract['dateSigned'] and not contract['terminationDate']:
-            expiry_date = datetime.strptime(contract['expiryDate'][:19], "%Y-%m-%dT%H:%M:%S")
-            current_time = datetime.now()
-            difference = expiry_date - current_time
-            days = divmod(difference.days, 86400)
-            print(days)
+#     # get user contract
+#     # refactoring techniques: replace temp with query
+#     user_role = get_user_role()
+#     contract_list = user_role.user_contracts
 
-            if (days[1] <= 31) and (days[1] > 0):
-                contract_expire_soon.append(contract)
-            if days[0] < 0:
-                contract_expired.append(contract)
-                
-    if len(contract_expire_soon) >= 1 or len(contract_expired) >= 1:
-        return True, contract_expire_soon, contract_expired
-    else:
-        return False, contract_expire_soon, contract_expired
+#     for contract in contract_list:
+#         if contract['dateSigned'] and not contract['terminationDate']:
+
+#             # get expiry date and current date
+#             expiry_date = datetime.strptime(contract['expiryDate'][:19], "%Y-%m-%dT%H:%M:%S")
+#             current_time = datetime.now()
+            
+#             # get the diffenrence between expiry date and current date
+#             difference = expiry_date - current_time
+#             days = divmod(difference.days, 86400)
+
+#             # Refactoring techniques: composing method
+#             contract_expire_soon = (days[1] <= 31) and (days[1] > 0)
+#             contract_expired = days[0] < 0
+
+#             if contract_expire_soon:
+#                 contract_expire_soon_list.append(contract)
+#             if contract_expired:
+#                 contract_expired_list.append(contract)
+    
+#     # return True if there's elem in any list, else False
+#     if len(contract_expire_soon_list) >= 1 or len(contract_expired_list) >= 1:
+#         return True, contract_expire_soon_list, contract_expired_list
+#     else:
+#         return False, contract_expire_soon_list, contract_expired_list

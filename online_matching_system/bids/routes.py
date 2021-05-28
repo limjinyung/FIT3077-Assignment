@@ -8,6 +8,7 @@ from online_matching_system.users.utils import login_required, user_index_bids, 
 from online_matching_system.models.user_model import student, tutor
 from online_matching_system.models.bid_model import open_bids, close_bids
 from .utils import get_bid_details, check_valid_offer, check_contract, search_bids, get_bid_type, all_bids
+from online_matching_system.models.message_model import message
 
 bids = Blueprint('bids', __name__)
 api_key = config('FIT3077_API')
@@ -34,6 +35,7 @@ def bid_index():
 
     ongoing_bids, closed_down_bids = user_index_bids()
 
+    # refactoring techniques: replace temp with query
     user_role = get_user_role()
     info = user_role.user_details
 
@@ -64,6 +66,8 @@ def bid_details_tutor(bid_id):
 
     if request.method == 'GET':
         bid_details = get_bid_details(bid_id)
+
+        # refactoring techniques: replace temp with query
         user_role = get_user_role()
         user_info_list = user_role.user_details
 
@@ -87,7 +91,10 @@ def bid_details_tutor(bid_id):
 @check_user_model
 def update_bid():
     """
-    update the bids
+    read the form data that user enter, search the bid and update bidder's request in bidderRequest list thru PATCH request
+
+    Returns:
+        redirect user to page according to the condition
     """
     bidder = request.form.get('bidder')
     bidder_id = request.form.get('bidder_id')
@@ -105,7 +112,6 @@ def update_bid():
     get_bid_url = bid_url + '/{}'.format(bid_id)
 
     # search the bid with bid id
-    print(bid_id)
     target_bid = search_bids(bid_id)
     target_bid_additional_info = target_bid['additionalInfo']
 
@@ -149,7 +155,10 @@ def update_bid():
 @check_user_model
 def create_bid():
     """
-    Function to create a new bid
+    read the form data that the user enter, and then create the bid thru POSt request
+
+    Returns:
+        redirect user to page according to the condition
     """
     subject_id =''
 
@@ -226,7 +235,10 @@ def create_bid():
 @check_user_model
 def offer_bid():
     """
-    Function to offer a bid to an existing request
+    read the form data that the user enter, search the bid that the bidder offer, and append the bidder request into bidderRequst list in additionalInfo
+
+    Returns:
+        redirect user to page according to the condition
     """
 
     bidder = request.form.get('bidder')
@@ -286,7 +298,14 @@ def offer_bid():
 @check_user_model
 def choose_offer(bid_id, bidder_id):
     """
-    Function to choose an offer from all offers of the bid
+    get the bid and modify the bidChosen to True
+
+    Args:
+        bid_id ([string]): [Id of the bid]
+        bidder_id ([string]): [Id of the user]
+
+    Returns:
+        redirect user to page according to the condition
     """
 
     bid_details_url = bid_url + "/{}".format(bid_id)
@@ -330,13 +349,21 @@ def choose_offer(bid_id, bidder_id):
 @check_user_model
 def buy_out(bid_id):
     """
-    Function to buy out a bid for the bidder
+    Since buy out means that the bidde agree to all the terms of the bid, then we will copy all the terms of the bid
+    and add it to the bidderRequest list, assign bidChosen to True as well
+
+    Args:
+        bid_id ([string]): [Id of the buy out bid]
+
+    Returns:
+        redirect user to page according to the condition
     """
 
     bid_details_url = bid_url + "/{}".format(bid_id)
 
     bid_details = search_bids(bid_id)
 
+    # refactoring techniques: replace temp with query
     user_role = get_user_role()
     user_info_list = user_role.user_details
 
@@ -412,14 +439,11 @@ def bid_messages(bid_id):
                 the_bid = bid
                 break
 
-        print(the_bid)
-
+        # refactoring techniques: replace temp with query
         user_role = get_user_role()
 
         profile_details = user_role.user_details
         reverse_msgs = the_bid['messages'][::-1]
-
-        print(profile_details)
 
         return render_template('bid_details_close.html', reverse_msgs=reverse_msgs, profile_details=profile_details,
                                the_bid=the_bid, preferred_time_list=preferred_time_list,
@@ -438,6 +462,7 @@ def bid_messages(bid_id):
                 the_bid = bid
                 break
 
+        # refactoring techniques: replace temp with query
         user_role = get_user_role()
         user_details = user_role.user_details
 
@@ -462,8 +487,6 @@ def bid_messages(bid_id):
                                    "preferredRate": preferred_rate, "contentFrom": user_details['id'],
                                    "contentTo": the_bid['initiator']['id'], "initialBid": True, "bid_chosen": False}
             }
-
-        # TODO: message model
         
         results = requests.post(
             url=message_url,
@@ -484,14 +507,13 @@ def reply_messages(bid_id, message_id):
     date_posted = datetime.now()
     content = request.form.get('content')
 
-    # TODO: message model
-
-    results = requests.get(
-        url=message_url+'/'+message_id,
-        headers={'Authorization': api_key},
-        params={'jwt': 'true'}
-    )
-    the_msg = results.json()
+    # results = requests.get(
+    #     url=message_url+'/'+message_id,
+    #     headers={'Authorization': api_key},
+    #     params={'jwt': 'true'}
+    # )
+    # the_msg = results.json()
+    the_msg = message.get_message_details(message_id)
 
     data = {
         "bidId": bid_id,
@@ -500,8 +522,6 @@ def reply_messages(bid_id, message_id):
         "content": content,
         "additionalInfo": {"contentFrom": session['user_id'], "contentTo": the_msg["poster"]["id"]}
     }
-
-    # TODO: message model
 
     results = requests.post(
         url=message_url,
@@ -519,15 +539,15 @@ def reply_messages(bid_id, message_id):
 def choose_offer_close_bid(bid_id, message_id):
 
     the_bid = search_bids(bid_id)
-
-    # TODO: message model
     
-    results = requests.get(
-        url=message_url+'/'+message_id,
-        headers={'Authorization': api_key},
-        params={'jwt': 'true'}
-    )
-    the_msg = results.json()
+    # results = requests.get(
+    #     url=message_url+'/'+message_id,
+    #     headers={'Authorization': api_key},
+    #     params={'jwt': 'true'}
+    # )
+    # the_msg = results.json()
+
+    the_msg = message.get_message_details(message_id)
     the_msg['additionalInfo']['bid_chosen'] = True
 
 
@@ -555,6 +575,9 @@ def choose_offer_close_bid(bid_id, message_id):
 @login_required
 @check_user_model
 def bid_monitor_index():
+    """
+    redirect the user to the bid_monitor.html
+    """
 
     return render_template('bid_monitor.html')
 
@@ -563,6 +586,12 @@ def bid_monitor_index():
 @login_required
 @check_user_model
 def get_monitor_list():
+    """
+    call the bid monitor object to update and retrieve the new bid info from API, and then jsonify it before passing to the frontend
+
+    Returns:
+        [JSON]: [the monitor list]
+    """
 
     return jsonify(monitor.get_monitor_list())
 
@@ -571,6 +600,15 @@ def get_monitor_list():
 @login_required
 @check_user_model
 def monitor_bid_details(bid_id):
+    """
+    redirect user to the bid monitor detail page
+
+    Args:
+        bid_id ([string]): [the ID of the bid]
+
+    Returns:
+        redirect users to the bid_monitor_details.html
+    """
 
     print(bid_id)
     return render_template('bid_monitor_details.html', bid_id=bid_id)
@@ -580,6 +618,15 @@ def monitor_bid_details(bid_id):
 @login_required
 @check_user_model
 def get_monitor_bid(bid_id):
+    """
+    get the specific bid information from bid montor and jsonify it before passing to frontend
+
+    Args:
+        bid_id ([string]): [the ID of the bid]
+
+    Returns:
+        [JSON]: [the details of the bid]
+    """
 
     return jsonify(monitor.get_monitor_bid(bid_id))
 
@@ -588,6 +635,15 @@ def get_monitor_bid(bid_id):
 @login_required
 @check_user_model
 def add_bid_to_monitor(bid_id):
+    """
+    Add the bid to the bid_monitor object
+
+    Args:
+        bid_id ([string]): [thr ID of the bid to be added into bid_monitor_list]
+
+    Returns:
+        redirect users to bid_monitor.html to see the added bid
+    """
 
     try:
         bid = search_bids(bid_id)

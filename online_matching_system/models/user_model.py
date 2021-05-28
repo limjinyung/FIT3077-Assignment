@@ -25,6 +25,9 @@ class UserModel():
         return "{}, {}".format(self.user_id ,self.initialized)
         
     def get_user_id(self):
+        """
+        get user id from session
+        """
 
         self.user_id = session.get('user_id',0)
 

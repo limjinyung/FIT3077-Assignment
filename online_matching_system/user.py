@@ -125,7 +125,6 @@ class UserFunction():
 
         user_id_url = users_url + "/{}".format(session['user_id'])
 
-        # TODO: merge all params in one requests
         user_details = requests.get(
             url=user_id_url,
             headers={ 'Authorization': api_key },

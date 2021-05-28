@@ -19,12 +19,13 @@ contract_url = root_url + "/contract"
 @login_required
 @check_user_model
 def contract_index():
+    """get all of the contract model and return the user's contract
+
+    Returns:
+        redirect to contract.html with user's contract list
+    """
     
     # get all the contract from API
-    # contract_list = requests.get(
-    #     url = contract_url,
-    #     headers={ 'Authorization': api_key },
-    # ).json()
 
     contract_list = contract_obj.get_contract_list()
 
@@ -42,6 +43,15 @@ def contract_index():
 @login_required
 @check_user_model
 def contract_details(contract_id):
+    """
+    to display a contract details and the modal for student to renew/reuse the contract, retrive the 5 latest contract to display as well
+
+    Args:
+        contract_id ([string]): [the ID of the contract to be displayed]
+
+    Returns:
+        redirect user to contract_details.html or raise Exception if catch any
+    """
 
     preferred_time_list = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30','13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30','18:00', '18:30']
     preferred_day_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
@@ -78,6 +88,7 @@ def contract_details(contract_id):
         duration_choices = ['10 seconds', '1 minute', '3 months', '6 months', '12 months', '24 months']
 
     # get the five latest contract
+    # refactoring techniques: replace temp with query
     user_role = get_user_role()
     contract_reference_list = user_role.user_contracts[:4]
 
@@ -91,6 +102,18 @@ def contract_details(contract_id):
 @login_required
 @check_user_model
 def sign_contract(contract_id):
+    """
+    check if user has tick the checkbox to proceed the sign contract, read the form data for how long that the user want the contract to be (only applicable to the first user that sign contract)
+
+    Args:
+        contract_id ([string]): [the ID of the contract to be signed]
+
+    Raises:
+        Exception: [the input of the month is not acceptable]
+
+    Returns:
+        redirect the user to the contract detail to confirm that the contract has been signed
+    """
 
     two_minute = 120
     three_months = 7889238
@@ -162,23 +185,31 @@ def sign_contract(contract_id):
 
 
 def check_both_parties_signed(contract_id):
+    """
+    to check if two parties has signed the contract and call the /sign endpoint to make the contract not be able to modified anymore
+
+    Args:
+        contract_id ([string]): [the ID of the contract to be signed]
+
+    Raises:
+        Exception: [raise if the contract has already been signed]
+    """
 
     contract_details = contract_obj.get_contract_details(contract_id)
 
-    if (contract_details['additionalInfo']['signInfo']['firstPartySignedDate'] and contract_details['additionalInfo']['signInfo']['secondPartySignedDate']) and not contract_details['dateSigned']:
+    # Refactoring techniques: composing methods
+    first_party_signed = contract_details['additionalInfo']['signInfo']['firstPartySignedDate']
+    second_party_signed = contract_details['additionalInfo']['signInfo']['secondPartySignedDate']
+    contract_signed = contract_details['dateSigned']
+
+    if (first_party_signed and second_party_signed) and not contract_signed:
         
         sign_contract = requests.post(
             url = root_url + "/contract/{}/sign".format(contract_id),
             headers={ 'Authorization': api_key },
             data={"dateSigned":datetime.now()}
         ).json()
-
-        # if sign_contract.status_code == 200:
-        #     print('contract signed complete')
-        # else:
-        #     raise Exception("There's something wrong signing the contract")
-        print(sign_contract)
-    elif (contract_details['additionalInfo']['signInfo']['firstPartySignedDate'] and contract_details['additionalInfo']['signInfo']['secondPartySignedDate']) and contract_details['dateSigned']:
+    elif (first_party_signed and second_party_signed) and contract_signed:
         raise Exception('Contract signed already')
     else:
         pass
@@ -187,6 +218,15 @@ def check_both_parties_signed(contract_id):
 @contracts.route('/reuse_contract', methods=["POST"])
 @login_required
 def reuse_contract():
+    """
+    get the form data, check if the student wants to sign the contract with a new tutor, check the tutor competency and generate the contract accordingly
+
+    Raises:
+        Exception: [raise Exception if can't find the student or tutor ID]
+
+    Returns:
+        redirect the user to contract page
+    """
 
     # declare variable
     student_subject_level = ''
@@ -200,7 +240,6 @@ def reuse_contract():
     # get the contract that student choose to reuse
     chosen_contract = contract_obj.get_contract_details(chosen_contract)
 
-    # TODO: make this into a reusable function
     # if the tutor is the new tutor, check the tutor competency
     if chosen_tutor == 'new':
         tutor_id = request.form.get('new_tutor_id')
@@ -280,6 +319,15 @@ def reuse_contract():
 @contracts.route('/renew_contract', methods=["POST"])
 @login_required
 def renew_contract():
+    """
+    get the new data terms from form data, and then check if the student wants to sign the contract with a new tutor, check the tutor competency and generate the contract accordingly
+
+    Raises:
+        Exception: [raise Exception if can't find the student or tutor ID]
+
+    Returns:
+        redirect the user to contract page
+    """
 
     # declare variable
     student_subject_level = ''
@@ -297,7 +345,6 @@ def renew_contract():
     rate_choice = request.form.get('preferred_rate_choice')
     rate_request = request.form.get('preferred_rate')
 
-    # TODO: make this into a reusable function
     # if the tutor is the new tutor, check the tutor competency
     if chosen_tutor == 'new':
         tutor_id = request.form.get('new_tutor_id')

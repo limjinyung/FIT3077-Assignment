@@ -99,6 +99,9 @@ class BidObject():
 
 
 class BidMonitor():
+    """
+    the bid monitor that stores a list of bid that tutor desire to monitor. It will update the bid every 2 seconds to make sure the bid info is up to date
+    """
 
     def __init__(self):
         self.monitor_list = []
@@ -116,6 +119,15 @@ class BidMonitor():
         return None
 
     def add_bid(self, bid_id):
+        """
+        add the bid into the monitor list
+
+        Args:
+            bid_id ([string]): [the ID of the bid to be added into monitor list]
+
+        Returns:
+            [boolean]: [True if the bid is found and added to the monitor list, else False if can't find the bid]
+        """
         bid = search_bids(bid_id)
 
         if bid not in self.monitor_list:
@@ -129,22 +141,32 @@ class BidMonitor():
         self.monitor_list.remove(bid)
 
     def check_bid_closed_down(self):
+        """
+        check if the bid is closed down, then remove it from the monitor list
+        """
         for bid in self.monitor_list:
             if bid['dateClosedDown']:
                 self.monitor_list.remove(bid)
 
     def update_bid(self):
+        """
+        to update the bid info that is in the monitor list
+        """
         new_monitor_list = []
         for bid in self.monitor_list:
+            # search_bid function will update the bid before searching
             new_monitor_list.append(search_bids(bid['id']))
 
         self.monitor_list = new_monitor_list
 
     def run_monitor(self):
+        """
+        use a while loop and sleep function to let the bid_monitor constantly update every 2 secs
+        """
         while True:
             self.check_bid_closed_down()
             self.update_bid()
-            time.sleep(3)
+            time.sleep(2)
 
 
 bid_observer = BidObserver()

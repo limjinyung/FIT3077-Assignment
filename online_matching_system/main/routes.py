@@ -33,6 +33,7 @@ def index():
 
         open_bid = []
 
+        # refactoring techniques: replace temp with query
         user_role = get_user_role()
 
         user_info_list = user_role.user_details

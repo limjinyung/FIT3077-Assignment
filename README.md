@@ -11,3 +11,7 @@ The deliverables can be found in *online_matching_system/deliverables/Assignment
 Student:
 Lim Jin Yung 29036186
 Chew Shen Min 29640938
+
+Contribution:
+Lim Jin Yung - Requirement 1,3 & Refactoring, Design Rationale
+Chew Shen Min - Requirement 2 & Class diagram
